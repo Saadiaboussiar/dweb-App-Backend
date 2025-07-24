@@ -25,6 +25,7 @@ public class BonIntervention {
     private String finishTime;
     private String duration;
     private int numberIntervenant;
+    private String bonImageUrl;
 
     @OneToOne(mappedBy = "BI")
     private Intervention intervention;
