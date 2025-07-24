@@ -20,14 +20,14 @@ public class AppController {
     public ResponseEntity<?> addUsers(@RequestBody AppUser user){
         try {
             appService.addNewUser(user);
+            appService.addRoleToUser("USER",user.getUsername());
             return ResponseEntity.ok("User saved.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
+
     }
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("It works!");
-    }
+
+
 }

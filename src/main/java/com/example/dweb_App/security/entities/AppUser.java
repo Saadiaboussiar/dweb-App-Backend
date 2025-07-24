@@ -17,6 +17,11 @@ public class AppUser {
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @JoinTable(
+            name = "app_user_user_roles",
+            joinColumns = @JoinColumn(name = "app_user_id"),
+            inverseJoinColumns = @JoinColumn(name = "app_role_id")
+    )
     private Collection<AppRole> userRoles=new ArrayList<>();
 
 }

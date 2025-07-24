@@ -1,0 +1,1 @@
+ALTER TABLE app_user_approles RENAME TO app_user_user_roles;
