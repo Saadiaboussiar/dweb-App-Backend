@@ -27,7 +27,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 
 public class SecurityConfig {
-    private final CustomUserDetailsService userDetailsService; // ✅ Injected
+
+    private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
     @Bean

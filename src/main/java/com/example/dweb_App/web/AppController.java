@@ -1,5 +1,7 @@
 package com.example.dweb_App.web;
 
+import com.example.dweb_App.data.entities.BonIntervention;
+import com.example.dweb_App.data.repositories.BonInterventionRepository;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.service.AppService;
 import org.springframework.http.HttpStatus;
@@ -11,10 +13,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AppController {
     private AppService appService;
-
-    public AppController(AppService appService) {
+    private BonInterventionRepository bonInterventionRepository;
+    public AppController(AppService appService, BonInterventionRepository bonInterventionRepository) {
         this.appService = appService;
+        this.bonInterventionRepository = bonInterventionRepository;
     }
+
 
     @PostMapping(path = "/users")
     public ResponseEntity<?> addUsers(@RequestBody AppUser user){
@@ -28,6 +32,14 @@ public class AppController {
         }
 
     }
+
+    @PostMapping(path = "/bonIntervention")
+    public ResponseEntity<?> addBon(@RequestBody BonIntervention bonIntervention){
+       bonInterventionRepository.save(bonIntervention);
+       return ResponseEntity.ok("Intervention infos saved.");
+
+    }
+
 
 
 }
