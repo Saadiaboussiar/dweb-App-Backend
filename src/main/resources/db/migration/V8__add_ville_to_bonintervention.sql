@@ -1,0 +1,2 @@
+ALTER TABLE bonIntervention
+ADD COLUMN ville VARCHAR(255);

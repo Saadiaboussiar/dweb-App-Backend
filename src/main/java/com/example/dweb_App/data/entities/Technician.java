@@ -16,10 +16,11 @@ public class Technician {
     private String email;
     private String phoneNumber;
     private String cin;
+    @Column(name = "photoUrl")
     private String photo; //path to the photo
     private String cnss;//il faut avoir une autre table pour ca (ou si il s'agit seulement de nom)
     @ManyToOne
-    @JoinColumn(name = "car_matricule")
+    @JoinColumn(name = "car_matricule", referencedColumnName = "matricule")
     private Car car;
 
     @OneToMany(mappedBy = "technician")
@@ -27,4 +28,5 @@ public class Technician {
 
     @OneToMany(mappedBy = "technician")
     private  Collection<Intervention> interventions;
+
 }

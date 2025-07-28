@@ -13,6 +13,7 @@ import java.util.Collection;
 public class Client {
     @Id
     private String cin;
+    private String fullName;
     private String reseauSocial;
     private String contrat; //It must be another entity
     private String ville;

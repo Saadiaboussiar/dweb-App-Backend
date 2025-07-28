@@ -1,0 +1,2 @@
+ALTER TABLE technician
+ADD COLUMN ville VARCHAR(255);

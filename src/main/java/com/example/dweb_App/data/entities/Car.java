@@ -10,8 +10,7 @@ import java.util.Collection;
 @Entity
 @Data @AllArgsConstructor @NoArgsConstructor
 public class Car {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Id
     private String matricule;
     @OneToMany(mappedBy = "car")
     private Collection<Technician> technicians;

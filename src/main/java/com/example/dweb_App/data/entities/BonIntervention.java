@@ -1,14 +1,12 @@
 package com.example.dweb_App.data.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.Date;
 
 @Entity
+@Data
 @AllArgsConstructor @NoArgsConstructor @Builder @ToString
 public class BonIntervention {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,6 +14,7 @@ public class BonIntervention {
     @ManyToOne
     @JoinColumn(name = "client_id")
     private Client client;
+    private String ville;
     private double km;
     private Date date;
     @ManyToOne
