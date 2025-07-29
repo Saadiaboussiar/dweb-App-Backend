@@ -98,14 +98,19 @@ public class AppController {
         Path uploadDir = Paths.get(projectRoot, "uploads", "technicians-profiles");
         Path filePath = uploadDir.resolve(filename);
         String fullPath = filePath.toAbsolutePath().toString();
+        File file=new File(uploadDir+filename);
 
         // Step 1: Save image
         try {
+
             Files.createDirectories(uploadDir); // creates folder only if missing
-            profileImage.transferTo(filePath.toFile());
 
-            System.out.println("Image saved to: " + filePath.toAbsolutePath());
-
+            if(file.exists()){
+                System.out.println("File already exists: " + file.getAbsolutePath());
+            }else {
+                profileImage.transferTo(filePath.toFile());
+                System.out.println("Image saved to: " + filePath.toAbsolutePath());
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -125,7 +130,7 @@ public class AppController {
                     .bonInterventions(new ArrayList<>())
                     .interventions(new ArrayList<>())
                     .car(null)
-                    .photo(fullPath)
+                    .photoUrl(fullPath)
                     .build();
 
             serviceData.addNewTechnician(tech);
