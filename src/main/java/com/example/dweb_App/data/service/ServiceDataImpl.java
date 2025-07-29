@@ -5,6 +5,7 @@ import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.repositories.ClientRepository;
 import com.example.dweb_App.data.repositories.TechnicianRepository;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,5 +63,14 @@ public class ServiceDataImpl implements ServiceData {
         bonIntervention.setTechnician(t);
 
         return bonIntervention;
+    }
+
+    @Override
+    public Technician loadTechnicianByEmail(String email) {
+        Technician technician=technicianRepository.findByEmail(email);
+        if(technician==null){
+            throw new UsernameNotFoundException("Technician not found with email: " + email);
+        }
+        return technician;
     }
 }

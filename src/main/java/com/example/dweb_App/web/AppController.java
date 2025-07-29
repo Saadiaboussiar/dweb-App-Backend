@@ -1,12 +1,10 @@
 package com.example.dweb_App.web;
 
-import com.example.dweb_App.data.entities.BonIntervention;
-import com.example.dweb_App.data.entities.Client;
-import com.example.dweb_App.data.entities.Intervention;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.repositories.BonInterventionRepository;
 import com.example.dweb_App.data.service.ServiceData;
-import com.example.dweb_App.dto.TechnicianInfos;
+import com.example.dweb_App.dto.request.TechnicianCreateDTO;
+import com.example.dweb_App.dto.response.TechnicianResponseDTO;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.service.AppService;
 import org.springframework.http.HttpStatus;
@@ -19,11 +17,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.UUID;
 
 
@@ -44,7 +39,7 @@ public class AppController {
     public ResponseEntity<?> addUsers(@RequestBody AppUser user){
         try {
             appService.addNewUser(user);
-            appService.addRoleToUser("USER",user.getUsername());
+            appService.addRoleToUser("USER",user.getEmail());
             return ResponseEntity.ok("User saved.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -86,7 +81,7 @@ public class AppController {
 
     @PostMapping(path = "/technicianProfile")
     public ResponseEntity<?> saveTechnicianInfos(
-            @ModelAttribute TechnicianInfos technicianInfos,
+            @ModelAttribute TechnicianCreateDTO technicianInfos,
             @RequestParam("profileImage") MultipartFile profileImage) {
 
         if (profileImage.isEmpty()) {
@@ -97,8 +92,9 @@ public class AppController {
         String projectRoot = System.getProperty("user.dir");
         Path uploadDir = Paths.get(projectRoot, "uploads", "technicians-profiles");
         Path filePath = uploadDir.resolve(filename);
-        String fullPath = filePath.toAbsolutePath().toString();
         File file=new File(uploadDir+filename);
+
+        String relativePath = "uploads/technicians-profiles/" + filename;
 
         // Step 1: Save image
         try {
@@ -130,7 +126,7 @@ public class AppController {
                     .bonInterventions(new ArrayList<>())
                     .interventions(new ArrayList<>())
                     .car(null)
-                    .photoUrl(fullPath)
+                    .photoUrl(relativePath)
                     .build();
 
             serviceData.addNewTechnician(tech);
@@ -144,6 +140,27 @@ public class AppController {
         }
     }
 
+    @GetMapping(path = "/technicianProfile")
+    public ResponseEntity<TechnicianResponseDTO> displayTechnicianInfos(Principal principal) {
+
+            String email = principal.getName();
+            Technician technician = serviceData.loadTechnicianByEmail(email);
+            if(technician == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            TechnicianResponseDTO responseDTO = TechnicianResponseDTO.builder()
+                    .firstName(technician.getFirstName())
+                    .lastName(technician.getLastName())
+                    .email(technician.getEmail())
+                    .phoneNumber(technician.getPhoneNumber())
+                    .cin(technician.getCin())
+                    .cnss(technician.getCnss())
+                    .profileUrl("http://localhost:9090/" + technician.getPhotoUrl())
+                    .build();
+            return ResponseEntity.ok(responseDTO);
+
+    }
 
 
 

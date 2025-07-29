@@ -51,6 +51,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,"/users/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/test").permitAll()
+                        .requestMatchers("/technicianProfile").authenticated()
+                        .requestMatchers("/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 );
         //disable frames for 2-console:
@@ -59,7 +61,7 @@ public class SecurityConfig {
 
         //add filters:
         JwtAuthenticationFilter jwtAuthenticationFilter=new JwtAuthenticationFilter(authenticationManager);
-        JwtAuthorizationFilter jwtAuthorizationFilter=new JwtAuthorizationFilter();
+        JwtAuthorizationFilter jwtAuthorizationFilter=new JwtAuthorizationFilter(userDetailsService);
         jwtAuthenticationFilter.setFilterProcessesUrl("/login");
 
         http
@@ -82,6 +84,7 @@ public class SecurityConfig {
             }
         };
     }
+
 
 
 

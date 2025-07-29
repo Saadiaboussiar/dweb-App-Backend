@@ -1,4 +1,4 @@
-package com.example.dweb_App.dto;
+package com.example.dweb_App.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor @NoArgsConstructor
-public class BonForm {
+public class BonInterventionCreateDTO {
     private String client;
     private String ville;
     private Float km;

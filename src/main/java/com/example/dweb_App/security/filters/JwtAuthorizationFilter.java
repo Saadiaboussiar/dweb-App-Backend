@@ -4,14 +4,18 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.dweb_App.security.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.CachingUserDetailsService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -21,6 +25,14 @@ import java.util.Collection;
 
 @Component
 public class JwtAuthorizationFilter extends OncePerRequestFilter{
+
+    private final CustomUserDetailsService userDetailsService;
+
+    public JwtAuthorizationFilter(CustomUserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if(request.getServletPath().equals("/refreshToken") || request.getServletPath().equals("/login") || request.getServletPath().equals("/users")){
@@ -35,6 +47,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter{
                     JWTVerifier jwtVerifier= JWT.require(algo).build();
                     DecodedJWT decodeJwt= jwtVerifier.verify(jwt);
                     String username=decodeJwt.getSubject();
+                    UserDetails userDetails=userDetailsService.loadUserByUsername(username);
                     String[] roles=decodeJwt.getClaim("roles").asArray(String.class);
 
                     Collection<GrantedAuthority> authorities=new ArrayList<>();
@@ -42,7 +55,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter{
                         authorities.add(new SimpleGrantedAuthority(r));
                     };
                     UsernamePasswordAuthenticationToken authenticationToken=
-                            new UsernamePasswordAuthenticationToken(username,null,authorities);
+                            new UsernamePasswordAuthenticationToken(userDetails,null,authorities);
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     filterChain.doFilter(request,response);
 

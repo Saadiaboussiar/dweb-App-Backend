@@ -26,7 +26,7 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public AppUser addNewUser(AppUser appUser) {
-        if(appUserRepository.findByUsername(appUser.getUsername())==null){
+        if(appUserRepository.findByEmail(appUser.getEmail())==null){
             String pw=appUser.getPassword();
             appUser.setPassword(passwordEncoder.encode(pw));
             return appUserRepository.save(appUser);
@@ -43,16 +43,16 @@ public class AppServiceImpl implements AppService {
     }
 
     @Override
-    public void addRoleToUser(String roleName, String username) {
+    public void addRoleToUser(String roleName, String email) {
         AppRole appRole= appRoleRepository.findByRoleName(roleName);
-        AppUser appUser =appUserRepository.findByUsername(username);
+        AppUser appUser =appUserRepository.findByEmail(email);
         appUser.getUserRoles().add(appRole);
         appUserRepository.save(appUser);
     }
 
     @Override
-    public AppUser loadUserBYUsername(String username) {
-        return appUserRepository.findByUsername(username);
+    public AppUser loadUserBYEmail(String email) {
+        return appUserRepository.findByEmail(email);
     }
 
     @Override
