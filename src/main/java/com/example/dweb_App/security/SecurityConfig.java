@@ -52,6 +52,10 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/test").permitAll()
                         .requestMatchers("/technicianProfile").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/technicianProfile").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/technicianProfile").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/technicianProfile").authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 );
@@ -81,6 +85,8 @@ public class SecurityConfig {
                         .allowedOrigins("http://localhost:5173")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
+
+
             }
         };
     }

@@ -73,4 +73,9 @@ public class ServiceDataImpl implements ServiceData {
         }
         return technician;
     }
+
+    @Override
+    public Technician saveTechnician(Technician technician) {
+        return technicianRepository.save(technician);
+    }
 }

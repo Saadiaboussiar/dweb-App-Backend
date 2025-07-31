@@ -9,7 +9,7 @@ import java.util.Collection;
 @Data
 @NoArgsConstructor  @AllArgsConstructor @Builder @ToString
 public class Technician {
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; //I dont know if its CIN , or another id
     private String firstName;
     private String lastName;

@@ -32,6 +32,7 @@ public class AppController {
         this.appService = appService;
         this.bonInterventionRepository = bonInterventionRepository;
         this.serviceData = serviceData;
+
     }
 
 
@@ -116,7 +117,6 @@ public class AppController {
         // Step 2: Save technician
         try {
             Technician tech = Technician.builder()
-                    .id(92L)
                     .lastName(technicianInfos.getLastName())
                     .firstName(technicianInfos.getFirstName())
                     .email(technicianInfos.getEmail())
@@ -162,6 +162,54 @@ public class AppController {
 
     }
 
+    @PutMapping(path="/technicianProfile")
+    public ResponseEntity<?> updateTechProfile(@ModelAttribute TechnicianCreateDTO technicianInfos,
+                                               @RequestParam(value = "profileImage", required = false) MultipartFile profileImage,
+                                               Principal principal){
+        String email=principal.getName();
+        Technician technician=serviceData.loadTechnicianByEmail(email);
+        try {
+            technician.setFirstName(technicianInfos.getFirstName());
+            technician.setLastName(technicianInfos.getLastName());
+            technician.setEmail(technicianInfos.getEmail());
+            technician.setPhoneNumber(technicianInfos.getPhoneNumber());
+            technician.setCin(technicianInfos.getCin());
+            technician.setCnss(technicianInfos.getCnss());
+
+
+            if (profileImage!=null && !profileImage.isEmpty()) {
+                String projectRoot = System.getProperty("user.dir");
+
+                Path oldImagePath = Paths.get(projectRoot).resolve(technician.getPhotoUrl());
+                    File oldImage = oldImagePath.toFile();
+                    if (oldImage.exists()) {
+                        oldImage.delete();
+                    }
+                    Path uploadDir = Paths.get(projectRoot, "uploads", "technicians-profiles");
+                    String filename = UUID.randomUUID() + "-" + profileImage.getOriginalFilename();
+                    File file = uploadDir.resolve(filename).toFile();
+
+                    profileImage.transferTo(file);
+
+                    technician.setPhotoUrl("uploads/technicians-profiles/" + filename);
+
+
+            }else{
+                technician.setPhotoUrl(technician.getPhotoUrl());
+            }
+
+            serviceData.saveTechnician(technician);
+
+            return ResponseEntity.ok("Profile updated successfully");
+
+        }catch (Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while updating technician infos: " + e.getMessage());
+
+        }
+
+
+    }
 
 
 }
