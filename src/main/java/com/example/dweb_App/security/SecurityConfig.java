@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/technicianProfile").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/bonIntervention").permitAll()
                         .anyRequest().authenticated()
                 );
         //disable frames for 2-console:

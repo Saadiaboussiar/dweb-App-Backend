@@ -58,6 +58,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter{
                             new UsernamePasswordAuthenticationToken(userDetails,null,authorities);
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                     filterChain.doFilter(request,response);
+                    System.out.println("Token extracted: " + jwt);
+                    System.out.println("Username from token: " + username);
+
 
                 }catch (Exception e){
                     response.setHeader("error-message",e.getMessage());

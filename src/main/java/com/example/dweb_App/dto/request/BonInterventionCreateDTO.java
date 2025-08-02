@@ -17,5 +17,4 @@ public class BonInterventionCreateDTO {
     private String finishTime;
     private String duration;
     private int nbreIntervenant;
-    private String bonImageUrl;
 }

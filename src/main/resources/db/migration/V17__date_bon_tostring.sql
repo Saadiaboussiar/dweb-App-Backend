@@ -1,0 +1,2 @@
+ALTER TABLE bonIntervention
+ALTER COLUMN date TYPE VARCHAR(10);

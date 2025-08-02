@@ -1,8 +1,11 @@
 package com.example.dweb_App.web;
 
+import com.example.dweb_App.data.entities.BonIntervention;
+import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.repositories.BonInterventionRepository;
 import com.example.dweb_App.data.service.ServiceData;
+import com.example.dweb_App.dto.request.BonInterventionCreateDTO;
 import com.example.dweb_App.dto.request.TechnicianCreateDTO;
 import com.example.dweb_App.dto.response.TechnicianResponseDTO;
 import com.example.dweb_App.security.entities.AppUser;
@@ -49,36 +52,52 @@ public class AppController {
 
     }
 
-    /*
+
     @PostMapping(path = "/bonIntervention")
-    public ResponseEntity<?> addBon(@ModelAttribute BonForm bonForm, @RequestParam("bonImage") MultipartFile bonImage){
-        try{
-            bonImage.transferTo(new File("uploads/" + bonImage.getOriginalFilename()));
-        }catch(IOException e){
-            e.printStackTrace();
+    public ResponseEntity<?> addBon(@RequestParam("bon") BonInterventionCreateDTO bonForm, @RequestParam("bonImage") MultipartFile bonImage){
+        System.out.println("Entering bonIntervention controller");
+
+        System.out.println("Duration received: " + bonForm.getDuration());
+
+        if (bonImage.isEmpty()) {
+            return ResponseEntity.badRequest().body("No file uploaded.");
         }
 
-        Technician tech=serviceData.loadTechnician(bonForm.getTechnicianFN(),bonForm.getTechnicianLN());
-        Client client=serviceData.loadClient(bonForm.getClient());
-        LocalDate date = LocalDate.parse(bonForm.getDate());
-        Date utilDate=Date.from((date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        BonIntervention bonIntervention= BonIntervention.builder()
+        String filename = UUID.randomUUID() + "-" + bonImage.getOriginalFilename();
+        String projectRoot = System.getProperty("user.dir");
+        Path uploadDir = Paths.get(projectRoot, "uploads", "bon-photos");
+        Path filePath = uploadDir.resolve(filename);
+        String relativePath = "uploads/bon-photos/" + filename;
+
+        try{
+
+            bonImage.transferTo(filePath.toFile());
+
+            Technician tech=serviceData.loadTechnician(bonForm.getTechnicianFN(),bonForm.getTechnicianLN());
+            Client client=serviceData.loadClient(bonForm.getClient());
+
+            BonIntervention bonIntervention= BonIntervention.builder()
                 .client(client)
                 .technician(tech)
                 .duration(bonForm.getDuration())
                 .km(bonForm.getKm())
-                .date(utilDate);
+                .date(bonForm.getDate())
                 .finishTime(bonForm.getFinishTime())
                 .startTime(bonForm.getStartTme())
                 .ville(bonForm.getVille())
                 .numberIntervenant(bonForm.getNbreIntervenant())
-                .bonImageUrl("uploads/" + bonImage.getOriginalFilename()).build();
-       BonIntervention bonInter=bonInterventionRepository.save(bonIntervention);
+                .bonImageUrl(relativePath).build();
+
+       bonInterventionRepository.save(bonIntervention);
 
        return ResponseEntity.ok("Intervention infos saved.");
-
+    }catch(Exception e){
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error while saving intervention infos: " + e.getMessage());
     }
-     */
+}
+
 
     @PostMapping(path = "/technicianProfile")
     public ResponseEntity<?> saveTechnicianInfos(
@@ -211,5 +230,15 @@ public class AppController {
 
     }
 
+    @PostMapping(path="/clientInfos")
+    public ResponseEntity<?> saveClientInfos(@RequestBody Client client){
+
+        if(serviceData.loadClient(client.getFullName())==null){
+            serviceData.addNewClient(client);
+            return ResponseEntity.ok("Client saved successfully");
+        }else{
+            return ResponseEntity.ok("This client already exists");
+        }
+    }
 
 }

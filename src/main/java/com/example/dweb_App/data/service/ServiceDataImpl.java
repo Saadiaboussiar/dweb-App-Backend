@@ -78,4 +78,9 @@ public class ServiceDataImpl implements ServiceData {
     public Technician saveTechnician(Technician technician) {
         return technicianRepository.save(technician);
     }
+
+    @Override
+    public Client addNewClient(Client client) {
+        return clientRepository.save(client);
+    }
 }

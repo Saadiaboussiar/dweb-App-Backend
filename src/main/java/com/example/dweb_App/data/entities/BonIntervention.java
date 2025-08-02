@@ -8,15 +8,16 @@ import java.util.Date;
 @Entity
 @Data
 @AllArgsConstructor @NoArgsConstructor @Builder @ToString
+@Table(name = "bonIntervention")
 public class BonIntervention {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "client_id")
+    @JoinColumn(name = "client_cin")
     private Client client;
     private String ville;
     private double km;
-    private Date date;
+    private String date;
     @ManyToOne
     @JoinColumn(name = "technician_id")
     private Technician technician;

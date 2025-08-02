@@ -1,0 +1,2 @@
+ALTER TABLE client
+ADD COLUMN full_name VARCHAR(255);

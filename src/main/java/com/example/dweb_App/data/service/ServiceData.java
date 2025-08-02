@@ -15,4 +15,5 @@ public interface ServiceData {
     public BonIntervention assignTechClientToBon(String techFirstName, String techLastName, String ClientFullName, BonIntervention bonIntervention);
     public Technician loadTechnicianByEmail(String email);
     public Technician saveTechnician(Technician technician);
+    public Client addNewClient(Client client);
 }

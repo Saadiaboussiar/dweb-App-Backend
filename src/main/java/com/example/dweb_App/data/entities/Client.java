@@ -1,5 +1,6 @@
 package com.example.dweb_App.data.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -13,7 +14,9 @@ import java.util.Collection;
 public class Client {
     @Id
     private String cin;
+
     private String fullName;
+    @Column(name = "reseauSocial")
     private String reseauSocial;
     private String contrat; //It must be another entity
     private String ville;
