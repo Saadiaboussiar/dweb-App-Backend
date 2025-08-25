@@ -5,16 +5,17 @@ import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.dto.request.TechnicianCreateDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TechnicianService {
     Technician addNewTechnician(Technician technician);
-    Technician loadTechnician(String firstName, String lastName);
+    Optional<Technician> loadTechnician(String firstName, String lastName);
     void addBonToTech(String firstName, String lastName, BonIntervention bon);
     BonIntervention assignTechClientToBon(String techFirstName, String techLastName, String ClientFullName, BonIntervention bonIntervention);
-    Technician loadTechnicianByEmail(String email);
+    Optional<Technician> loadTechnicianByEmail(String email);
     Technician saveTechnician(Technician technician);
     List<Technician> allTechnicians();
-    Technician loadTechnicianById(Long id);
+    Optional<Technician> loadTechnicianById(Long id);
     void deleteTechnicianById(Long id);
 
 }

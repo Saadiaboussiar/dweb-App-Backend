@@ -3,9 +3,14 @@ package com.example.dweb_App.web;
 import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.service.ClientService;
 import com.example.dweb_App.dto.request.ClientUpdateDto;
+import com.example.dweb_App.exception.EntityNotFoundException;
+import com.example.dweb_App.exception.UpdateFailedException;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,34 +29,46 @@ public class ClientController {
         this.clientService = clientService;
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<?> saveClientInfos(@RequestBody Client client) {
+    public ResponseEntity<?> saveClientInfos(@RequestBody @Valid ClientUpdateDto client) {
 
-        if (clientService.loadClient(client.getFullName()) == null) {
-            clientService.addNewClient(client);
+        if (clientService.loadClient(client.getFullName()).isEmpty()) {
+
+            Client newClient= Client.builder()
+                    .cin(client.getCin())
+                    .ville(client.getVille())
+                    .adresse(client.getAdresse())
+                    .email(client.getEmail())
+                    .contrat(client.getContrat())
+                    .fullName(client.getFullName())
+                    .phoneNumber(client.getPhoneNumber())
+                    .reseauSocial(client.getReseauSocial())
+                    .build();
+
+            Client savedClient=clientService.saveClient(newClient);
             return ResponseEntity.ok("Client saved successfully");
         } else {
             return ResponseEntity.ok("This client already exists");
         }
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<Client>> getClients() {
         List<Client> clients= clientService.allClients();
-        if(!clients.isEmpty()){
+        if(!clients.isEmpty()) {
             return ResponseEntity.ok(clients);
         }
         return ResponseEntity.noContent().build();
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping(path="/{clientCin}")
     public ResponseEntity<?> deleteClient(@PathVariable String clientCin) {
-        Client client = clientService.loadClientByCin(clientCin);
-        if (client == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Client not found"));
-        }
+        Client client = clientService.loadClientByCin(clientCin)
+                .orElseThrow(()->new EntityNotFoundException("Client not Found "+clientCin));
+
 
         clientService.deleteClientByCin(clientCin);
 
@@ -61,15 +78,13 @@ public class ClientController {
         ));
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @PutMapping(path="/{clientCin}")
-    public ResponseEntity<?> editClientInfos(@PathVariable String clientCin,@RequestBody ClientUpdateDto client){
-        Client existingClient=clientService.loadClientByCin(clientCin);
-        if (existingClient == null) {
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Client not found"));
-        }
-        try{
+    public ResponseEntity<?> editClientInfos(@PathVariable String clientCin,@RequestBody @Valid ClientUpdateDto client){
+
+        try {
+            Client existingClient = clientService.loadClientByCin(clientCin)
+                    .orElseThrow(() -> new EntityNotFoundException("Client not Found " + clientCin));
             existingClient.setEmail(client.getEmail());
             existingClient.setPhoneNumber(client.getPhoneNumber());
             existingClient.setAdresse(client.getAdresse());
@@ -83,10 +98,11 @@ public class ClientController {
             Client updatedClient = clientService.saveClient(existingClient);
 
             return ResponseEntity.ok(updatedClient);
+
+        }catch (DataIntegrityViolationException e){
+            throw new UpdateFailedException("Update would violate database constraints: "+e.getMessage(),e);
         }catch (Exception e){
-            log.error("Failed to update client CIN: {}", clientCin, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while editing client infos: " + e.getMessage());
+            throw new UpdateFailedException("Failed to update client: "+e.getMessage(),e);
         }
     }
 }

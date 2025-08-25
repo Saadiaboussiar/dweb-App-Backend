@@ -15,7 +15,6 @@ import java.util.Collection;
 public class Client {
     @Id
     private String cin;
-
     private String fullName;
     @Column(name = "reseauSocial")
     private String reseauSocial;
@@ -23,6 +22,7 @@ public class Client {
     private String ville;
     private String adresse;
     private String phoneNumber;
+
     private String email;
     @OneToMany(mappedBy = "client")
     @JsonIgnore

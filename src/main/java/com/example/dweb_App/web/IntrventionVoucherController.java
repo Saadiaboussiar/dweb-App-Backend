@@ -9,12 +9,14 @@ import com.example.dweb_App.data.service.ClientService;
 import com.example.dweb_App.data.service.InterventionService;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.request.BonInterventionCreateDTO;
+import com.example.dweb_App.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,6 +48,7 @@ public class IntrventionVoucherController {
         this.interventionService = interventionService;
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addNewBonIntervention(@RequestPart("bonIntervention") String bonInterventionJson, @RequestParam(value = "bonImage", required = false) MultipartFile bonImage,  HttpServletRequest request){
 
@@ -60,15 +63,11 @@ public class IntrventionVoucherController {
             return ResponseEntity.badRequest().body("No file uploaded.");
         }
 
-        Client client=clientService.loadClient(bonIntervention.getClient());
-        if(client==null){
-            return ResponseEntity.badRequest().body("Client not found.");
-        }
-        Technician technician=technicianService.loadTechnician(bonIntervention.getTechnicianFN(),bonIntervention.getTechnicianLN());
+        Client client=clientService.loadClient(bonIntervention.getClient())
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+bonIntervention.getClient()));
 
-        if(technician==null){
-            return ResponseEntity.badRequest().body("Technician not found.");
-        }
+        Technician technician=technicianService.loadTechnician(bonIntervention.getTechnicianFN(),bonIntervention.getTechnicianLN())
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+bonIntervention.getTechnicianFN()+" "+bonIntervention.getTechnicianLN()));
 
 
         String filename = UUID.randomUUID() + "-" + bonImage.getOriginalFilename();
@@ -112,6 +111,7 @@ public class IntrventionVoucherController {
         }
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<BonIntervention>> getBonIntervention(){
         List<BonIntervention> bonInterventions=bonInterventionService.allInterventions();
@@ -120,16 +120,17 @@ public class IntrventionVoucherController {
         }
         else return ResponseEntity.noContent().build();
     }
+
+    @PostAuthorize("hasAuthority('ADMIN')")
     @GetMapping("Technician/{technicianId}")
     public  ResponseEntity<?> getBonInterventionForTechnician(@PathVariable Long technicianId){
-        Technician technician=technicianService.loadTechnicianById(technicianId);
-        if(technician!=null){
-            List<BonIntervention> bonInterventionList=technician.getBonInterventions().stream().toList();
-            if(!bonInterventionList.isEmpty()){
-                return ResponseEntity.ok(bonInterventionList);
-            }else return ResponseEntity.noContent().build();
-        }else{
-            return ResponseEntity.ok("Technician not Found");
-        }
+        Technician technician=technicianService.loadTechnicianById(technicianId)
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
+
+        List<BonIntervention> bonInterventionList=technician.getBonInterventions().stream().toList();
+        if(!bonInterventionList.isEmpty()){
+            return ResponseEntity.ok(bonInterventionList);
+        }else return ResponseEntity.noContent().build();
+
     }
 }

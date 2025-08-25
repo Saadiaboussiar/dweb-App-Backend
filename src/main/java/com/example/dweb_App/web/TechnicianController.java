@@ -3,9 +3,14 @@ package com.example.dweb_App.web;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.request.TechnicianCreateDTO;
+import com.example.dweb_App.exception.EntityNotFoundException;
+import com.example.dweb_App.exception.UpdateFailedException;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,39 +28,39 @@ public class TechnicianController {
         this.technicianService = technicianService;
     }
 
-
+    @PostAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<Technician>> getAllTechnicians(){
        List<Technician> technicians=technicianService.allTechnicians();
-       if(technicians!=null){
+       if(!technicians.isEmpty()){
             return ResponseEntity.ok(technicians);
         }
-       else{
-           return ResponseEntity.noContent().build();
-       }
+       return ResponseEntity.noContent().build();
+
     }
+
+    @PostAuthorize("hasAuthority('ADMIN')")
     @PostMapping
-    public ResponseEntity<?> addNewTechnician(@RequestBody TechnicianCreateDTO technician){
+    public ResponseEntity<?> addNewTechnician(@RequestBody @Valid TechnicianCreateDTO technician){
 
-        if(technicianService.loadTechnician(technician.getFirstName(), technician.getLastName())!=null){
-            return ResponseEntity.ok("Technician already exists");
+        if(technicianService.loadTechnician(technician.getFirstName(), technician.getLastName()).isEmpty()){
+            Technician newTechnician= Technician.builder().cin(technician.getCin()).email(technician.getEmail()).cnss(technician.getCnss()).firstName(technician.getFirstName()).lastName(technician.getLastName()).phoneNumber(technician.getPhoneNumber()).build();
+            Technician addedTechnician=technicianService.addNewTechnician(newTechnician);
+            return ResponseEntity.ok(addedTechnician.getId());
+
         }
-        Technician newTechnician= Technician.builder().cin(technician.getCin()).email(technician.getEmail()).cnss(technician.getCnss()).firstName(technician.getFirstName()).lastName(technician.getLastName()).phoneNumber(technician.getPhoneNumber()).build();
-        Technician addedTechnician=technicianService.addNewTechnician(newTechnician);
-        return ResponseEntity.ok(addedTechnician.getId());
+        return ResponseEntity.ok("Technician already exists");
 
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateTechnician(@PathVariable Long id, @RequestBody TechnicianCreateDTO technician){
-        Technician existingTechnician=technicianService.loadTechnicianById(id);
-        if(existingTechnician==null){
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Technician not found"));
+    public ResponseEntity<?> updateTechnician(@PathVariable Long id, @RequestBody @Valid TechnicianCreateDTO technician){
 
-        }
         try{
+            Technician existingTechnician=technicianService.loadTechnicianById(id)
+                    .orElseThrow(()->new EntityNotFoundException("Technician not Found "+id));
+
             existingTechnician.setCnss(technician.getCnss());
             existingTechnician.setCin(technician.getCin());
             existingTechnician.setEmail(technician.getEmail());
@@ -66,24 +71,20 @@ public class TechnicianController {
             Technician updatedTechnician=technicianService.saveTechnician(existingTechnician);
 
             return ResponseEntity.ok(updatedTechnician);
-        }catch(Exception e){
-            log.error("Failed to update client CIN: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error while editing client infos: " + e.getMessage());
-
+        }catch (DataIntegrityViolationException e){
+            throw new UpdateFailedException("Update would violate database constraints: "+e.getMessage(),e);
+        }catch (Exception e){
+            throw new UpdateFailedException("Failed to update client: "+e.getMessage(),e);
         }
 
     }
 
+    @PostAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTechnician(@PathVariable Long id){
-        Technician technician=technicianService.loadTechnicianById(id);
-        if(technician==null){
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Technician not found"));
+        Technician technician=technicianService.loadTechnicianById(id)
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+id));
 
-        }
         technicianService.deleteTechnicianById(id);
         return ResponseEntity.ok(Map.of(
                 "message", "Client deleted successfully",

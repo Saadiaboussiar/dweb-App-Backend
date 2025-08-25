@@ -1,5 +1,7 @@
 package com.example.dweb_App.security.service;
 
+import com.example.dweb_App.exception.BusinessException;
+import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.security.entities.AppRole;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.repositories.AppRoleRepository;
@@ -10,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -28,12 +31,24 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public AppUser addNewUser(AppUser appUser) {
-        if(appUserRepository.findByEmail(appUser.getEmail())==null){
-            String pw=appUser.getPassword();
-            appUser.setPassword(passwordEncoder.encode(pw));
-            return appUserRepository.save(appUser);
+        if(appUserRepository.existByEmail(appUser.getEmail())){
+            throw new BusinessException(
+                    "Email Exist Déjà",
+                    "Un utilisateur avec cette adresse e-mail exist déjà",
+                    "e-mail"
+            );
         }
-        else{ return null; }
+        if (appUserRepository.existByUsername(appUser.getUsername())){
+            throw new BusinessException(
+                    "Nom d'utilisateur Exist Déjà",
+                    "Un utilisateur avec ce nom d'utilisateur exist déjà",
+                    "Nom d'utilisateur"
+            );
+        }
+        String pw=appUser.getPassword();
+        appUser.setPassword(passwordEncoder.encode(pw));
+        return appUserRepository.save(appUser);
+
     }
 
     @Override
@@ -47,14 +62,20 @@ public class AppServiceImpl implements AppService {
     @Override
     public void addRoleToUser(String roleName, String email) {
         AppRole appRole= appRoleRepository.findByRoleName(roleName);
-        AppUser appUser =appUserRepository.findByEmail(email);
+        AppUser appUser =appUserRepository.findByEmail(email)
+                .orElseThrow(()->new EntityNotFoundException("Utiliateur avec cette adresse e-mail n'existe pas"));
         appUser.getUserRoles().add(appRole);
         appUserRepository.save(appUser);
     }
 
     @Override
-    public AppUser loadUserBYEmail(String email) {
+    public Optional<AppUser> loadUserBYEmail(String email) {
         return appUserRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<AppUser> loadUserByUsername(String username) {
+        return appUserRepository.findByUsername(username);
     }
 
     @Override

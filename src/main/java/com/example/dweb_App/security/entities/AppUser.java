@@ -13,6 +13,10 @@ import java.util.Collection;
 public class AppUser {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; //if there is a kind of id they work with
+
+    /*@Version
+    private Long version;*/
+
     private String username;
     private String email;
     private String password;

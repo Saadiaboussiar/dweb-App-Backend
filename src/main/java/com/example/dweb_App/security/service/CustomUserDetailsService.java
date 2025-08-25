@@ -1,5 +1,6 @@
 package com.example.dweb_App.security.service;
 
+import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.security.entities.AppRole;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.repositories.AppUserRepository;
@@ -24,7 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        AppUser appUser=appUserRepository.findByEmail(email);
+        AppUser appUser=appUserRepository.findByEmail(email)
+                .orElseThrow(()->new EntityNotFoundException("Utiliateur avec cette adresse e-mail n'existe pas"));
         if (appUser == null) {
             throw new UsernameNotFoundException("User not found");
         }
