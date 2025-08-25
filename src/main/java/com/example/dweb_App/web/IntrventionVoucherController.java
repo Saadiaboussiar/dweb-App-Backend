@@ -1,0 +1,135 @@
+package com.example.dweb_App.web;
+
+import com.example.dweb_App.data.entities.BonIntervention;
+import com.example.dweb_App.data.entities.Client;
+import com.example.dweb_App.data.entities.Intervention;
+import com.example.dweb_App.data.entities.Technician;
+import com.example.dweb_App.data.service.BonInterventionService;
+import com.example.dweb_App.data.service.ClientService;
+import com.example.dweb_App.data.service.InterventionService;
+import com.example.dweb_App.data.service.TechnicianService;
+import com.example.dweb_App.dto.request.BonInterventionCreateDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+
+@Slf4j
+@CrossOrigin(origins = "http://localhost:5173")
+@RestController
+@RequestMapping("/bonIntervention")
+
+public class IntrventionVoucherController {
+
+    private BonInterventionService bonInterventionService;
+    private ClientService clientService;
+    private TechnicianService technicianService;
+    private InterventionService interventionService;
+
+    public IntrventionVoucherController(BonInterventionService bonInterventionService, ClientService clientService, TechnicianService technicianService, InterventionService interventionService) {
+        this.bonInterventionService = bonInterventionService;
+        this.clientService = clientService;
+        this.technicianService = technicianService;
+        this.interventionService = interventionService;
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> addNewBonIntervention(@RequestPart("bonIntervention") String bonInterventionJson, @RequestParam(value = "bonImage", required = false) MultipartFile bonImage,  HttpServletRequest request){
+
+        try {
+        ObjectMapper objectMapper = new ObjectMapper();
+        BonInterventionCreateDTO bonIntervention = objectMapper.readValue(bonInterventionJson, BonInterventionCreateDTO.class);
+
+        log.info("Content-Type: {}", request.getContentType());
+        log.info("bonIntervention received: {}", bonIntervention);
+        log.info("bonImage received: {}", bonImage != null ? bonImage.getOriginalFilename() : "null");
+        if (bonImage == null || bonImage.isEmpty()) {
+            return ResponseEntity.badRequest().body("No file uploaded.");
+        }
+
+        Client client=clientService.loadClient(bonIntervention.getClient());
+        if(client==null){
+            return ResponseEntity.badRequest().body("Client not found.");
+        }
+        Technician technician=technicianService.loadTechnician(bonIntervention.getTechnicianFN(),bonIntervention.getTechnicianLN());
+
+        if(technician==null){
+            return ResponseEntity.badRequest().body("Technician not found.");
+        }
+
+
+        String filename = UUID.randomUUID() + "-" + bonImage.getOriginalFilename();
+        String projectRoot = System.getProperty("user.dir");
+        Path uploadDir = Paths.get(projectRoot, "uploads", "bon-photos");
+        Path filePath = uploadDir.resolve(filename);
+        String relativePath = "uploads/bon-photos/" + filename;
+
+
+
+            bonImage.transferTo(filePath.toFile());
+
+            BonIntervention newBonIntervention = BonIntervention.builder()
+                    .client(client)
+                    .technician(technician)
+                    .ville(bonIntervention.getVille())
+                    .km(bonIntervention.getKm())
+                    .date(bonIntervention.getDate())
+                    .startTime(bonIntervention.getStartTime())
+                    .finishTime(bonIntervention.getFinishTime())
+                    .duration(bonIntervention.getDuration())
+                    .numberIntervenant(bonIntervention.getNbreIntervenant())
+                    .bonImageUrl("http://localhost:9090/"+relativePath)
+                    .build();
+
+            BonIntervention savedBonIntervention=bonInterventionService.addNewBonIntervention(newBonIntervention);
+
+            Intervention intervention= Intervention.builder()
+                    .BI(savedBonIntervention)
+                    .technician(technician)
+                    .submissionDate(bonIntervention.getSubmittedAt())
+                    .build();
+
+            Intervention savedIntervention=interventionService.addNewIntervention(intervention);
+
+            return ResponseEntity.ok(savedBonIntervention);
+
+        }catch (Exception e){
+
+            return ResponseEntity.badRequest().body("Invalid JSON format: " + e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<BonIntervention>> getBonIntervention(){
+        List<BonIntervention> bonInterventions=bonInterventionService.allInterventions();
+        if(!bonInterventions.isEmpty()){
+            return ResponseEntity.ok(bonInterventions);
+        }
+        else return ResponseEntity.noContent().build();
+    }
+    @GetMapping("Technician/{technicianId}")
+    public  ResponseEntity<?> getBonInterventionForTechnician(@PathVariable Long technicianId){
+        Technician technician=technicianService.loadTechnicianById(technicianId);
+        if(technician!=null){
+            List<BonIntervention> bonInterventionList=technician.getBonInterventions().stream().toList();
+            if(!bonInterventionList.isEmpty()){
+                return ResponseEntity.ok(bonInterventionList);
+            }else return ResponseEntity.noContent().build();
+        }else{
+            return ResponseEntity.ok("Technician not Found");
+        }
+    }
+}

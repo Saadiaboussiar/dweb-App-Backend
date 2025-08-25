@@ -1,5 +1,6 @@
 package com.example.dweb_App.data.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,9 +24,11 @@ public class Technician {
     private Car car;
 
     @OneToMany(mappedBy = "technician")
+    @JsonIgnore
     private Collection<BonIntervention> bonInterventions;
 
     @OneToMany(mappedBy = "technician")
+    @JsonIgnore
     private  Collection<Intervention> interventions;
 
 }

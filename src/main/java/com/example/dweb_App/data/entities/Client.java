@@ -1,5 +1,6 @@
 package com.example.dweb_App.data.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -21,6 +22,9 @@ public class Client {
     private String contrat; //It must be another entity
     private String ville;
     private String adresse;
+    private String phoneNumber;
+    private String email;
     @OneToMany(mappedBy = "client")
+    @JsonIgnore
     private Collection<BonIntervention> bonInterventions;
 }

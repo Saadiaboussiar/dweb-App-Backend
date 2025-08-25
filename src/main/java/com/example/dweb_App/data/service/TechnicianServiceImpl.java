@@ -3,23 +3,22 @@ package com.example.dweb_App.data.service;
 import com.example.dweb_App.data.entities.BonIntervention;
 import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.entities.Technician;
-import com.example.dweb_App.data.repositories.ClientRepository;
 import com.example.dweb_App.data.repositories.TechnicianRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @Transactional
-public class ServiceDataImpl implements ServiceData {
-    private TechnicianRepository technicianRepository;
-    private ClientRepository clientRepository;
+public class TechnicianServiceImpl implements TechnicianService {
 
-    public ServiceDataImpl(TechnicianRepository technicianRepository, ClientRepository clientRepository) {
+    private TechnicianRepository technicianRepository;
+    private ClientService clientService;
+    public TechnicianServiceImpl(TechnicianRepository technicianRepository) {
         this.technicianRepository = technicianRepository;
-        this.clientRepository = clientRepository;
     }
 
     @Override
@@ -40,24 +39,10 @@ public class ServiceDataImpl implements ServiceData {
         technicianRepository.save(tech);
     }
 
-
     @Override
-    public void addBonToClient(String fullName, BonIntervention bon) {
-        Client client=loadClient(fullName);
-        Collection<BonIntervention> bons=client.getBonInterventions();
-        bons.add(bon);
-        clientRepository.save(client);
-    }
+    public BonIntervention assignTechClientToBon(String techFirstName, String techLastName, String ClientFullName, BonIntervention bonIntervention) {
 
-    @Override
-
-    public Client loadClient(String fullName) {
-        return clientRepository.findByFullName(fullName);
-    }
-
-    @Override
-    public BonIntervention assignTechClientToBon(String techFirstName, String techLastName, String clientFullName, BonIntervention bonIntervention) {
-        Client c=loadClient(clientFullName);
+        Client c=clientService.loadClient(ClientFullName);
         Technician t=loadTechnician(techFirstName,techLastName);
         bonIntervention.setClient(c);
         bonIntervention.setTechnician(t);
@@ -80,7 +65,17 @@ public class ServiceDataImpl implements ServiceData {
     }
 
     @Override
-    public Client addNewClient(Client client) {
-        return clientRepository.save(client);
+    public List<Technician> allTechnicians() {
+        return technicianRepository.findAll();
+    }
+
+    @Override
+    public Technician loadTechnicianById(Long id) {
+        return technicianRepository.findById(id).orElse(null);
+    }
+
+    @Override
+    public void deleteTechnicianById(Long id) {
+        technicianRepository.deleteById(id);
     }
 }

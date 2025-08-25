@@ -88,6 +88,12 @@
 			<artifactId>java-jwt</artifactId>
 			<version>4.5.0</version> <!-- or latest -->
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.firebase/firebase-admin -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.5.0</version>
+		</dependency>
 
 	</dependencies>
 

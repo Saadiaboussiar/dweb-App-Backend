@@ -1,0 +1,5 @@
+ALTER TABLE client
+ADD COLUMN phone_number VARCHAR(255);
+
+ALTER TABLE client
+ADD COLUMN email VARCHAR(255);

@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface TechnicianRepository extends JpaRepository<Technician,Long> {
     Technician findByFirstNameAndLastName(String firstName, String lastName);
     Technician findByEmail(String email);
+
 }

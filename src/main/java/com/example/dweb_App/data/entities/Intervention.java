@@ -21,7 +21,7 @@ public class Intervention {
     @JoinColumn(name = "bon_intervention_id")
     private BonIntervention BI;
 
-    private LocalDateTime submissionDate;
-    private LocalDateTime validationDate;
+    private String submissionDate;
+    private String validationDate;
     private int points;
 }

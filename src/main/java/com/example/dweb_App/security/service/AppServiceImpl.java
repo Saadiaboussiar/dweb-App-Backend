@@ -8,7 +8,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -59,4 +61,15 @@ public class AppServiceImpl implements AppService {
     public List<AppUser> UsersList() {
         return appUserRepository.findAll();
     }
+
+    @Override
+    public Collection<String> getRolesOfUser(AppUser user) {
+        Collection<AppRole> roles=user.getUserRoles();
+        List<String> rolesNames=roles.stream()
+                                    .map(role->role.getRoleName())
+                                    .collect(Collectors.toList());
+        return rolesNames;
+    }
+
+
 }
