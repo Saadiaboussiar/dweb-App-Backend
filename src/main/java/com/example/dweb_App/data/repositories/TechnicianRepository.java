@@ -9,5 +9,7 @@ import java.util.Optional;
 public interface TechnicianRepository extends JpaRepository<Technician,Long> {
     Optional<Technician> findByFirstNameAndLastName(String firstName, String lastName);
     Optional<Technician> findByEmail(String email);
-
+    boolean existsByEmail(String email);
+    boolean existsByFirstNameAndLastName(String firstName, String lastName);
+    boolean existsByCin(String cin);
 }

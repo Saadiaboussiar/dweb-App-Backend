@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+    postgres:
+        image: postgres:15-alpine
+        container_name: postgres_db
+        environment:
+            POSTGRES_DB: dwebApp-db
+            POSTGRES_USER: saadiab
+            POSTGRES_PASSWORD: boussiarsaadia2005
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+            - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+        restart: unless-stopped
+        networks:
+            - app_network
+
+    pgadmin:
+        image: dpage/pgadmin4
+        container_name: pgadmin_ui
+        environment:
+            PGADMIN_DEFAULT_EMAIL: saadia@gmail.com
+            PGADMIN_DEFAULT_PASSWORD: saadia2005
+        ports:
+            - "8080:80"
+        depends_on:
+            - postgres
+        restart: unless-stopped
+        networks:
+            - app_network
+
+volumes:
+    postgres_data:
+
+
+networks:
+    app_network:
+        driver: bridge

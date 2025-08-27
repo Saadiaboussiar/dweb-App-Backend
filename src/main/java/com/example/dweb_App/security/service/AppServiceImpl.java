@@ -31,14 +31,14 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public AppUser addNewUser(AppUser appUser) {
-        if(appUserRepository.existByEmail(appUser.getEmail())){
+        if(appUserRepository.existsByEmail(appUser.getEmail())){
             throw new BusinessException(
                     "Email Exist Déjà",
                     "Un utilisateur avec cette adresse e-mail exist déjà",
                     "e-mail"
             );
         }
-        if (appUserRepository.existByUsername(appUser.getUsername())){
+        if (appUserRepository.existsByUsername(appUser.getUsername())){
             throw new BusinessException(
                     "Nom d'utilisateur Exist Déjà",
                     "Un utilisateur avec ce nom d'utilisateur exist déjà",
@@ -61,7 +61,8 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public void addRoleToUser(String roleName, String email) {
-        AppRole appRole= appRoleRepository.findByRoleName(roleName);
+        AppRole appRole= appRoleRepository.findByRoleName(roleName)
+                .orElseThrow(()->new EntityNotFoundException("Ce role n'existe pas"));
         AppUser appUser =appUserRepository.findByEmail(email)
                 .orElseThrow(()->new EntityNotFoundException("Utiliateur avec cette adresse e-mail n'existe pas"));
         appUser.getUserRoles().add(appRole);

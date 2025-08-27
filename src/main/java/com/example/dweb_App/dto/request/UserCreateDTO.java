@@ -8,12 +8,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor @NoArgsConstructor @Builder
-public class TechnicianCreateDTO {
-    private String firstName;
-    private String lastName;
-    @Email(message = "Please provide a valid email address")
+public class UserCreateDTO {
+    private String username;
+    @Email(message = "Entrez une dresse e-mail Valide")
     private String email;
-    private String phoneNumber;
-    private String cin;
-    private String cnss;
+    private String password;
 }

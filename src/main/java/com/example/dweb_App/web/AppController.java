@@ -5,6 +5,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.dweb_App.dto.request.UserCreateDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.security.entities.AppRole;
 import com.example.dweb_App.security.entities.AppUser;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -34,25 +36,28 @@ public class AppController {
 
 
     @PostMapping("/users")
-    public ResponseEntity<?> addUsers(@RequestBody AppUser user) {
+    public ResponseEntity<?> addUsers(@RequestBody UserCreateDTO user) {
         log.info("Received user: {}", user);
 
-        try {
-            appService.addNewUser(user);
-            appService.addRoleToUser("USER", user.getEmail());
-            return ResponseEntity.ok(Map.of(
-                    "roles", appService.getRolesOfUser(user),
-                    "email", user.getEmail(),
-                    "username", user.getUsername()
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", e.getMessage()));
-        }
+        AppUser newUser= AppUser.builder()
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .userRoles(new ArrayList<>()).build();
+
+        AppUser savedUser=appService.addNewUser(newUser);
+        appService.addRoleToUser("USER", savedUser.getEmail());
+
+        return ResponseEntity.ok(Map.of(
+                "roles", appService.getRolesOfUser(newUser),
+                "email", user.getEmail(),
+                "username", user.getUsername()));
+
     }
 
     @PostMapping("/refreshToken")
     public void refreshToken(@RequestBody Map<String, String> tokenMap, HttpServletRequest request, HttpServletResponse response) throws Exception {
+
         String refreshToken = tokenMap.get("refreshToken");
         if (refreshToken != null && refreshToken.startsWith("Bearer ")) {
             try {
@@ -60,9 +65,9 @@ public class AppController {
                 Algorithm algo = Algorithm.HMAC256("mySecret2005");
                 JWTVerifier jwtVerifier = JWT.require(algo).build();
                 DecodedJWT decodeJwt = jwtVerifier.verify(jwt);
-                String username = decodeJwt.getSubject();
-
-                AppUser appUser = appService.loadUserByUsername(username)
+                String email = decodeJwt.getSubject();
+                System.out.println("Utilisateur accéder au refreshToken: "+email);
+                AppUser appUser = appService.loadUserBYEmail(email)
                         .orElseThrow(()->new EntityNotFoundException("Utilisateur non trouvé"));
                 String jwtAccessToken = JWT.create()
                         .withSubject(appUser.getUsername())

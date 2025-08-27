@@ -11,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,7 +30,7 @@ public class ClientController {
         this.clientService = clientService;
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<?> saveClientInfos(@RequestBody @Valid ClientUpdateDto client) {
 
@@ -53,7 +54,7 @@ public class ClientController {
         }
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<Client>> getClients() {
         List<Client> clients= clientService.allClients();
@@ -63,7 +64,7 @@ public class ClientController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping(path="/{clientCin}")
     public ResponseEntity<?> deleteClient(@PathVariable String clientCin) {
         Client client = clientService.loadClientByCin(clientCin)
@@ -78,7 +79,7 @@ public class ClientController {
         ));
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping(path="/{clientCin}")
     public ResponseEntity<?> editClientInfos(@PathVariable String clientCin,@RequestBody @Valid ClientUpdateDto client){
 

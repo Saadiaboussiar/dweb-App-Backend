@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Algorithm algorithm1=Algorithm.HMAC256("mySecret2005");
         String jwtAccessToken= JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis()+30*60*1000))
+                .withExpiresAt(new Date(System.currentTimeMillis()+2*60*1000))
                 .withIssuer(request.getRequestURL().toString())
                 .withClaim("roles",user.getAuthorities().stream().map(ga->ga.getAuthority()).collect(Collectors.toList())) //On transforme une collection de type AppRole a une to type string
                 .sign(algorithm1);

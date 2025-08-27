@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -48,7 +49,7 @@ public class IntrventionVoucherController {
         this.interventionService = interventionService;
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('USER')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addNewBonIntervention(@RequestPart("bonIntervention") String bonInterventionJson, @RequestParam(value = "bonImage", required = false) MultipartFile bonImage,  HttpServletRequest request){
 
@@ -59,6 +60,7 @@ public class IntrventionVoucherController {
         log.info("Content-Type: {}", request.getContentType());
         log.info("bonIntervention received: {}", bonIntervention);
         log.info("bonImage received: {}", bonImage != null ? bonImage.getOriginalFilename() : "null");
+
         if (bonImage == null || bonImage.isEmpty()) {
             return ResponseEntity.badRequest().body("No file uploaded.");
         }
@@ -103,7 +105,7 @@ public class IntrventionVoucherController {
 
             Intervention savedIntervention=interventionService.addNewIntervention(intervention);
 
-            return ResponseEntity.ok(savedBonIntervention);
+            return ResponseEntity.ok(savedBonIntervention.getId());
 
         }catch (Exception e){
 
@@ -111,7 +113,7 @@ public class IntrventionVoucherController {
         }
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<BonIntervention>> getBonIntervention(){
         List<BonIntervention> bonInterventions=bonInterventionService.allInterventions();
@@ -121,7 +123,7 @@ public class IntrventionVoucherController {
         else return ResponseEntity.noContent().build();
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("Technician/{technicianId}")
     public  ResponseEntity<?> getBonInterventionForTechnician(@PathVariable Long technicianId){
         Technician technician=technicianService.loadTechnicianById(technicianId)

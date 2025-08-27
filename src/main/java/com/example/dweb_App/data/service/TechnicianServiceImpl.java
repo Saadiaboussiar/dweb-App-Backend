@@ -4,6 +4,7 @@ import com.example.dweb_App.data.entities.BonIntervention;
 import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.repositories.TechnicianRepository;
+import com.example.dweb_App.exception.BusinessException;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,27 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Technician addNewTechnician(Technician technician) {
+        if(technicianRepository.existsByEmail(technician.getEmail())){
+            throw new BusinessException(
+                    "Email de technicien Exist Déjà",
+                    "Un techicien avec cette adresse e-mail exist déjà",
+                    "Email de technicien"
+            );
+        }
+        if(technicianRepository.existsByFirstNameAndLastName(technician.getFirstName(),technician.getLastName())){
+            throw new BusinessException(
+                    "Nom d'utilisateur de technician Exist Déjà",
+                    "Un techicien avec ce nom d'utilisateur exist déjà",
+                    "Nom d'utilisateur de technicien"
+            );
+        }
+        if(technicianRepository.existsByCin(technician.getCin())){
+            throw new BusinessException(
+                    "Cin de technicien exist déjà",
+                    "un technicien avec ce CIN exit déjà",
+                    "CIN de technicien"
+            );
+        }
         return technicianRepository.save(technician);
     }
 

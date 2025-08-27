@@ -60,7 +60,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter{
                     filterChain.doFilter(request,response);
                     System.out.println("Token extracted: " + jwt);
                     System.out.println("Username from token: " + username);
-
+                    System.out.println("roles for this user: "+authorities);
 
                 }catch (Exception e){
                     response.setHeader("error-message",e.getMessage());

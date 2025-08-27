@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface ClientRepository extends JpaRepository<Client,String> {
     Optional<Client> findByFullName(String fullName);
     Optional<Client> findByCin(String cin);
-    void deleteByCin(String cin);
+    boolean existsByEmail(String email);
+    boolean existsByFullName(String fullName);
 
 }

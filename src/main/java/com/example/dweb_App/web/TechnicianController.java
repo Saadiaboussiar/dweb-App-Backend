@@ -11,6 +11,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,21 +40,18 @@ public class TechnicianController {
 
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<?> addNewTechnician(@RequestBody @Valid TechnicianCreateDTO technician){
 
-        if(technicianService.loadTechnician(technician.getFirstName(), technician.getLastName()).isEmpty()){
-            Technician newTechnician= Technician.builder().cin(technician.getCin()).email(technician.getEmail()).cnss(technician.getCnss()).firstName(technician.getFirstName()).lastName(technician.getLastName()).phoneNumber(technician.getPhoneNumber()).build();
-            Technician addedTechnician=technicianService.addNewTechnician(newTechnician);
-            return ResponseEntity.ok(addedTechnician.getId());
+        Technician newTechnician= Technician.builder().cin(technician.getCin()).email(technician.getEmail()).cnss(technician.getCnss()).firstName(technician.getFirstName()).lastName(technician.getLastName()).phoneNumber(technician.getPhoneNumber()).build();
+        Technician addedTechnician=technicianService.addNewTechnician(newTechnician);
+        return ResponseEntity.ok(addedTechnician.getId());
 
-        }
-        return ResponseEntity.ok("Technician already exists");
 
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<?> updateTechnician(@PathVariable Long id, @RequestBody @Valid TechnicianCreateDTO technician){
 
@@ -79,7 +77,7 @@ public class TechnicianController {
 
     }
 
-    @PostAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteTechnician(@PathVariable Long id){
         Technician technician=technicianService.loadTechnicianById(id)
