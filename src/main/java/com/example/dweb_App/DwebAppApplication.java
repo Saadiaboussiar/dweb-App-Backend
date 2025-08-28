@@ -36,6 +36,7 @@ public class DwebAppApplication {
 				System.out.println("URL: " + conn.getMetaData().getURL());
 				System.out.println("Username: " + conn.getMetaData().getUserName());
 			} catch (Exception e) {
+
 				System.out.println("❌ CONNECTION FAILED: " + e.getMessage());
 				e.printStackTrace();
 			}

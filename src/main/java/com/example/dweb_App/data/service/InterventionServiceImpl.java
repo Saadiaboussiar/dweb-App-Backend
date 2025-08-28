@@ -5,6 +5,8 @@ import com.example.dweb_App.data.repositories.InterventionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class InterventionServiceImpl implements InterventionService {
@@ -22,5 +24,11 @@ public class InterventionServiceImpl implements InterventionService {
     @Override
     public void deleteIntervention(Long interventionId) {
         interventionRepository.deleteById(interventionId);
+    }
+
+    @Override
+    public List<Intervention> getAllInterventions() {
+
+        return interventionRepository.findAll();
     }
 }
