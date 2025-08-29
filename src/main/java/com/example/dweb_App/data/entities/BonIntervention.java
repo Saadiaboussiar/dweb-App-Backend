@@ -27,7 +27,7 @@ public class BonIntervention {
     private int numberIntervenant;
     private String bonImageUrl;
 
-    @OneToOne(mappedBy = "BI")
+    @OneToOne(mappedBy = "BI", cascade = CascadeType.ALL, orphanRemoval = true)
     private Intervention intervention;
 
 }

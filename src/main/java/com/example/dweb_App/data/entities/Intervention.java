@@ -1,23 +1,24 @@
 package com.example.dweb_App.data.entities;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-
 @Entity
-@Data @NoArgsConstructor @AllArgsConstructor @Builder @ToString
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class Intervention {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "technician_id")
     private Technician technician;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true) // ← ADD CASCADE
     @JoinColumn(name = "bon_intervention_id")
     private BonIntervention BI;
 

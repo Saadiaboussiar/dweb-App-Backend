@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -30,5 +31,10 @@ public class InterventionServiceImpl implements InterventionService {
     public List<Intervention> getAllInterventions() {
 
         return interventionRepository.findAll();
+    }
+
+    @Override
+    public Optional<Intervention> findInterventionById(Long id) {
+        return interventionRepository.findById(id);
     }
 }
