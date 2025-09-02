@@ -23,6 +23,15 @@ public class Intervention {
     private BonIntervention BI;
 
     private String submissionDate;
-    private String validationDate;
+
+    @Enumerated(EnumType.STRING)
+    private InterventionStatus status=InterventionStatus.PENDING;
+
+    private String actionDateTime;
+
     private int points;
+
+
+
 }
+

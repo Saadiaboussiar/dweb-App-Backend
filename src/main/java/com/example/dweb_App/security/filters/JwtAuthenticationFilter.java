@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Component
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {

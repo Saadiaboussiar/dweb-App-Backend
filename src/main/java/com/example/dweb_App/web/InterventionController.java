@@ -7,7 +7,7 @@ import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.service.BonInterventionService;
 import com.example.dweb_App.data.service.InterventionService;
 import com.example.dweb_App.dto.response.InterventionDetailsDTO;
-import com.example.dweb_App.dto.response.InterventionInfosDTO;
+import com.example.dweb_App.dto.response.InterventionEssentialsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class InterventionController {
 
 
 
-    @GetMapping
+    @GetMapping("/interventionsDetails")
     public ResponseEntity<?> getAllIntervention(){
 
         List<Intervention> interventions=interventionService.getAllInterventions();
@@ -64,12 +64,12 @@ public class InterventionController {
     }
 
 
-    @GetMapping("/interventionsDetails")
+    @GetMapping("/interventionsEssentials")
     public ResponseEntity<?> getInterventionsDetails(){
 
         List<Intervention> interventions=interventionService.getAllInterventions();
         if(!interventions.isEmpty()){
-            List<InterventionInfosDTO> interventionDetailsDTOList=new ArrayList<>();
+            List<InterventionEssentialsDTO> interventionDetailsDTOList=new ArrayList<>();
 
             for(Intervention intervention:interventions ){
 
@@ -88,16 +88,17 @@ public class InterventionController {
                 String rowDate=parts[0];
                 String rawTime=parts[1];
 
-                InterventionInfosDTO interventionDetails= InterventionInfosDTO.builder()
+                InterventionEssentialsDTO interventionEssentials= InterventionEssentialsDTO.builder()
                         .interId(intervention.getId())
                         .technicianFullName(technicianFullName)
                         .client(clientFullName)
                         .ville(ville)
                         .date(rowDate)
                         .submittedAt(rawTime)
+                        .status(intervention.getStatus())
                         .build();
 
-                interventionDetailsDTOList.add(interventionDetails);
+                interventionDetailsDTOList.add(interventionEssentials);
             }
 
             return ResponseEntity.ok(interventionDetailsDTOList);
@@ -108,22 +109,26 @@ public class InterventionController {
     @DeleteMapping("/{interventionId}")
     public ResponseEntity<?> deleteIntervention(@PathVariable Long interventionId){
 
-        Intervention intervention=interventionService.findInterventionById(interventionId)
-                .orElseThrow(()->new EntityNotFoundException("intervention not Found "+interventionId));
-
-        if(intervention.getBI()!=null){
-            intervention.getBI().setIntervention(null);
-            intervention.setBI(null);
-        }
-        if(intervention.getTechnician()!=null){
-            intervention.getTechnician().getInterventions().remove(intervention);
-        }
         interventionService.deleteIntervention(interventionId);
-        bonInterventionService.deleteBonIntervention(intervention.getBI().getId());
 
         return ResponseEntity.ok(Map.of(
                 "message", "Intervention et son bon sont bien supprimées ",
-                "interventionId", intervention.getId()));
+                "interventionId", interventionId));
+    }
+
+    @PutMapping("/{interId}")
+    public ResponseEntity<?> validateIntervention(@PathVariable Long interId, @RequestParam Boolean isValidate){
+
+        try{
+            interventionService.updateInterventionStatus(interId,isValidate);
+            interventionService.updateInterventionPoints(interId);
+
+            return ResponseEntity.ok().build();
+
+        }catch(EntityNotFoundException e){
+            return ResponseEntity.notFound().build();
+
+        }
     }
 
 

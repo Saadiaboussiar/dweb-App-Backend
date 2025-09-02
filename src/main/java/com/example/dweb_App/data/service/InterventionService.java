@@ -10,4 +10,6 @@ public interface InterventionService {
     void deleteIntervention(Long interventionId);
     List<Intervention> getAllInterventions();
     Optional<Intervention> findInterventionById(Long id);
+    void updateInterventionStatus(Long interId, Boolean isValidate);
+    void updateInterventionPoints(Long interId);
 }

@@ -50,6 +50,7 @@ public class IntrventionVoucherController {
     }
 
     @PreAuthorize("hasAuthority('USER')")
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> addNewBonIntervention(@RequestPart("bonIntervention") String bonInterventionJson, @RequestParam(value = "bonImage", required = false) MultipartFile bonImage,  HttpServletRequest request){
 
@@ -97,10 +98,14 @@ public class IntrventionVoucherController {
 
             BonIntervention savedBonIntervention=bonInterventionService.addNewBonIntervention(newBonIntervention);
 
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMMM/yyyy HH'h'mm", Locale.FRENCH);
+            String frenchDateTime = now.format(formatter);
+
             Intervention intervention= Intervention.builder()
                     .BI(savedBonIntervention)
                     .technician(technician)
-                    .submissionDate(bonIntervention.getSubmittedAt())
+                    .submissionDate(frenchDateTime)
                     .build();
 
             Intervention savedIntervention=interventionService.addNewIntervention(intervention);
@@ -135,6 +140,8 @@ public class IntrventionVoucherController {
         }else return ResponseEntity.noContent().build();
 
     }
+
+
 
 
 }

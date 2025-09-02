@@ -34,9 +34,11 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
         builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
         return builder.build();
@@ -56,27 +58,24 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/test").permitAll()
                         .requestMatchers("/refreshToken").permitAll()
-                        .requestMatchers("/technicianProfile").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/technicianProfile").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/technicianProfile").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/technicianProfile").authenticated()
+                        .requestMatchers("/technicianInfos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/technicianInfos").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/technicianInfos").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/technicianInfos").authenticated()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/bonIntervention").permitAll()
                         .anyRequest().authenticated()
                 );
-        //disable frames for 2-console:
-        http.headers(headers ->
-                headers.frameOptions(frame->frame.sameOrigin()));
 
         //add filters:
-        JwtAuthenticationFilter jwtAuthenticationFilter=new JwtAuthenticationFilter(authenticationManager);
-        JwtAuthorizationFilter jwtAuthorizationFilter=new JwtAuthorizationFilter(userDetailsService);
-        jwtAuthenticationFilter.setFilterProcessesUrl("/login");
+
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager);
+        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(userDetailsService);
 
         http
                 .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) // ← ADD THIS
+                        .authenticationEntryPoint(authenticationEntryPoint)
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -87,6 +86,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
     
     @Bean
     public WebMvcConfigurer corsConfigurer() {
