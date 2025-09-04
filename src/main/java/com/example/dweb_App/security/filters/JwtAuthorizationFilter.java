@@ -74,6 +74,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.clearContext();
                     throw new AuthenticationServiceException("JWT token expired", ex);
+
                 } catch (JWTVerificationException | IllegalArgumentException ex) {
 
                     SecurityContextHolder.clearContext();

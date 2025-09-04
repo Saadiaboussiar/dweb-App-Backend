@@ -67,11 +67,12 @@ public class InterventionServiceImpl implements InterventionService {
 
     @Override
     public void updateInterventionStatus(Long interId, Boolean isValidate) {
+
         Intervention intervention=interventionRepository.findById(interId)
-                .orElseThrow(()->new EntityNotFoundException("Intervetion not found "+interId));
+                .orElseThrow(()->new EntityNotFoundException("Intervention not found "+interId));
 
         LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy 'à' HH'h'mm", Locale.FRENCH);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
         String frenchDateTime = now.format(formatter);
 
         intervention.setActionDateTime(frenchDateTime);
@@ -81,7 +82,10 @@ public class InterventionServiceImpl implements InterventionService {
             status= InterventionStatus.PENDING;
         }
         else if(isValidate){
+
             status= InterventionStatus.VALIDATED;
+            updateInterventionPoints( interId);
+
         }else{
             status= InterventionStatus.REJECTED;
         }
@@ -98,8 +102,8 @@ public class InterventionServiceImpl implements InterventionService {
         Intervention intervention=interventionRepository.findById(interId)
                 .orElseThrow(()->new EntityNotFoundException("Intervetion not found "+interId));
 
-        String actionDate=intervention.getActionDateTime();
-        PointsCategories pointsCategory=PointsCategories.formValue(actionDate);
+        String submissionDate=intervention.getSubmissionDate();
+        PointsCategories pointsCategory=PointsCategories.formValue(submissionDate);
 
         int points=pointsCategory.bonusAmount;
 

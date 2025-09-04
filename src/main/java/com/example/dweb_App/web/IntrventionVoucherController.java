@@ -1,14 +1,12 @@
 package com.example.dweb_App.web;
 
-import com.example.dweb_App.data.entities.BonIntervention;
-import com.example.dweb_App.data.entities.Client;
-import com.example.dweb_App.data.entities.Intervention;
-import com.example.dweb_App.data.entities.Technician;
+import com.example.dweb_App.data.entities.*;
 import com.example.dweb_App.data.service.BonInterventionService;
 import com.example.dweb_App.data.service.ClientService;
 import com.example.dweb_App.data.service.InterventionService;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.request.BonInterventionCreateDTO;
+import com.example.dweb_App.dto.response.InterventionDetailsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,10 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
@@ -99,13 +94,15 @@ public class IntrventionVoucherController {
             BonIntervention savedBonIntervention=bonInterventionService.addNewBonIntervention(newBonIntervention);
 
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMMM/yyyy HH'h'mm", Locale.FRENCH);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
             String frenchDateTime = now.format(formatter);
 
             Intervention intervention= Intervention.builder()
                     .BI(savedBonIntervention)
                     .technician(technician)
                     .submissionDate(frenchDateTime)
+                    .status(InterventionStatus.PENDING)
                     .build();
 
             Intervention savedIntervention=interventionService.addNewIntervention(intervention);
@@ -127,20 +124,6 @@ public class IntrventionVoucherController {
         }
         else return ResponseEntity.noContent().build();
     }
-
-    @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("Technician/{technicianId}")
-    public  ResponseEntity<?> getBonInterventionForTechnician(@PathVariable Long technicianId){
-        Technician technician=technicianService.loadTechnicianById(technicianId)
-                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
-
-        List<BonIntervention> bonInterventionList=technician.getBonInterventions().stream().toList();
-        if(!bonInterventionList.isEmpty()){
-            return ResponseEntity.ok(bonInterventionList);
-        }else return ResponseEntity.noContent().build();
-
-    }
-
 
 
 

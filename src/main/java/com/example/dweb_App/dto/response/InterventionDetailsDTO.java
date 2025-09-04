@@ -1,6 +1,7 @@
 package com.example.dweb_App.dto.response;
 
 import com.example.dweb_App.data.entities.Client;
+import com.example.dweb_App.data.entities.InterventionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,5 +23,6 @@ public class InterventionDetailsDTO {
     private int nbreIntervenant;
     private String interUrl;
     private String submittedAt;
+    private InterventionStatus status;
     
 }

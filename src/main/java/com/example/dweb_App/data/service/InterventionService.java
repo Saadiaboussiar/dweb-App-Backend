@@ -12,4 +12,5 @@ public interface InterventionService {
     Optional<Intervention> findInterventionById(Long id);
     void updateInterventionStatus(Long interId, Boolean isValidate);
     void updateInterventionPoints(Long interId);
+
 }

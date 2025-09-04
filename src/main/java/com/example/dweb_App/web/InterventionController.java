@@ -1,9 +1,6 @@
 package com.example.dweb_App.web;
 
-import com.example.dweb_App.data.entities.BonIntervention;
-import com.example.dweb_App.data.entities.Client;
-import com.example.dweb_App.data.entities.Intervention;
-import com.example.dweb_App.data.entities.Technician;
+import com.example.dweb_App.data.entities.*;
 import com.example.dweb_App.data.service.BonInterventionService;
 import com.example.dweb_App.data.service.InterventionService;
 import com.example.dweb_App.dto.response.InterventionDetailsDTO;
@@ -11,16 +8,21 @@ import com.example.dweb_App.dto.response.InterventionEssentialsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.*;
 
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/intervention")
+
 public class InterventionController {
     private InterventionService interventionService;
     private BonInterventionService bonInterventionService;
@@ -54,7 +56,8 @@ public class InterventionController {
                         .duration(intervention.getBI().getDuration())
                         .submittedAt(intervention.getSubmissionDate())
                         .interUrl(intervention.getBI().getBonImageUrl())
-                        .nbreIntervenant(intervention.getBI().getNumberIntervenant()).build();
+                        .nbreIntervenant(intervention.getBI().getNumberIntervenant())
+                        .build();
 
                 interventionDetailsDTOList.add(interventionDetailsDTO);
             }
@@ -84,17 +87,21 @@ public class InterventionController {
 
                 String ville=bonIntervention.getVille();
                 String dateAndTime=intervention.getSubmissionDate();
-                String[] parts=dateAndTime.split(" ");
-                String rowDate=parts[0];
-                String rawTime=parts[1];
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+
+                LocalDateTime dateTime = LocalDateTime.parse(dateAndTime, formatter);
+
+                LocalDate date = dateTime.toLocalDate();
+                LocalTime time = dateTime.toLocalTime();
 
                 InterventionEssentialsDTO interventionEssentials= InterventionEssentialsDTO.builder()
                         .interId(intervention.getId())
                         .technicianFullName(technicianFullName)
                         .client(clientFullName)
                         .ville(ville)
-                        .date(rowDate)
-                        .submittedAt(rawTime)
+                        .date(date.toString())
+                        .submittedAt(time.toString())
                         .status(intervention.getStatus())
                         .build();
 
@@ -121,8 +128,6 @@ public class InterventionController {
 
         try{
             interventionService.updateInterventionStatus(interId,isValidate);
-            interventionService.updateInterventionPoints(interId);
-
             return ResponseEntity.ok().build();
 
         }catch(EntityNotFoundException e){
@@ -131,6 +136,17 @@ public class InterventionController {
         }
     }
 
+    @GetMapping("/status/{interId}")
+    public ResponseEntity<?> getInterventionPointsCategory(@PathVariable Long interId){
+
+        Intervention intervention=interventionService.findInterventionById(interId)
+                .orElseThrow(()->new EntityNotFoundException("Intervention Not Found"));
+
+        int interventionPoints=intervention.getPoints();
+        return ResponseEntity.ok(interventionPoints);
+
+
+    }
 
 
 }

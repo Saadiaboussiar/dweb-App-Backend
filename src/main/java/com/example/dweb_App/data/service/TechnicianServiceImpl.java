@@ -102,4 +102,13 @@ public class TechnicianServiceImpl implements TechnicianService {
     public void deleteTechnicianById(Long id) {
         technicianRepository.deleteById(id);
     }
+
+    @Override
+    public List<BonIntervention> getInterventioonsByTechnician(Long techId) {
+
+        Technician technician=technicianRepository.findById(techId)
+                .orElseThrow(()->new EntityNotFoundException("Technician not found"));
+        return technician.getBonInterventions().stream().toList();
+
+    }
 }

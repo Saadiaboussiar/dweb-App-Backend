@@ -1,6 +1,7 @@
 package com.example.dweb_App.data.service;
 
 import com.example.dweb_App.data.entities.BonIntervention;
+import com.example.dweb_App.data.entities.Intervention;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.dto.request.TechnicianCreateDTO;
 
@@ -17,5 +18,5 @@ public interface TechnicianService {
     List<Technician> allTechnicians();
     Optional<Technician> loadTechnicianById(Long id);
     void deleteTechnicianById(Long id);
-
+    List<BonIntervention> getInterventioonsByTechnician(Long techId);
 }
