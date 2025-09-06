@@ -108,6 +108,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
         Technician technician=technicianRepository.findById(techId)
                 .orElseThrow(()->new EntityNotFoundException("Technician not found"));
+
         return technician.getBonInterventions().stream().toList();
 
     }

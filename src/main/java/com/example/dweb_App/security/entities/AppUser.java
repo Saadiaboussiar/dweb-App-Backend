@@ -4,6 +4,7 @@ package com.example.dweb_App.security.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -16,10 +17,13 @@ public class AppUser {
 
     /*@Version
     private Long version;*/
-
     private String username;
     private String email;
     private String password;
+
+    private boolean passwordChangeRequired = true;
+    private boolean enabled = true;
+    private LocalDateTime createdAt;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(

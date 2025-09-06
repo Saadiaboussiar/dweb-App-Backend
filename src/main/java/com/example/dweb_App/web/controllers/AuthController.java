@@ -1,37 +1,47 @@
-package com.example.dweb_App.web;
+package com.example.dweb_App.web.controllers;
 
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.dweb_App.dto.request.ChangePasswordRequest;
 import com.example.dweb_App.dto.request.UserCreateDTO;
+import com.example.dweb_App.dto.response.ChangePasswordResponse;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.security.entities.AppRole;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.service.AppService;
+import com.example.dweb_App.utils.PasswordService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
-public class AppController {
+public class AuthController {
+
     private AppService appService;
+    private PasswordService passwordService;
+    private AuthenticationManager authenticationManager;
 
-    public AppController(AppService appService) {
+    public AuthController(AppService appService, PasswordService passwordService, AuthenticationManager authenticationManager) {
         this.appService = appService;
-
+        this.passwordService = passwordService;
+        this.authenticationManager = authenticationManager;
     }
 
 
@@ -46,12 +56,11 @@ public class AppController {
                 .userRoles(new ArrayList<>()).build();
 
         AppUser savedUser=appService.addNewUser(newUser);
-        appService.addRoleToUser("USER", savedUser.getEmail());
 
         return ResponseEntity.ok(Map.of(
                 "roles", appService.getRolesOfUser(newUser),
-                "email", user.getEmail(),
-                "username", user.getUsername()));
+                "email", savedUser.getEmail(),
+                "username", savedUser.getUsername()));
 
     }
 
@@ -90,5 +99,32 @@ public class AppController {
             throw new RuntimeException("Refresh Token required!!");
         }
     }
+
+
+
+    @GetMapping("/auth/password-change-required")
+    public ResponseEntity<Boolean> isPasswordChangeRequired(Principal principal) {
+        boolean required = passwordService.isPasswordChangeRequired(principal.getName());
+        return ResponseEntity.ok(required);
+    }
+
+
+
+    @PostMapping("/auth/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request,
+                                            @RequestHeader("Authorization") String authHeader) {
+        // Extract token and process password change
+        String token = authHeader.substring(7);
+        Algorithm algo = Algorithm.HMAC256("mySecret2005");
+        JWTVerifier jwtVerifier = JWT.require(algo).build();
+        DecodedJWT decodeJwt = jwtVerifier.verify(token);
+        String username = decodeJwt.getSubject();
+
+        // Your password change logic here
+        ChangePasswordResponse response =passwordService.forcePasswordChange(username, request.getCurrentPassword(), request.getNewPassword(),request.getConfirmPassword());
+
+        return ResponseEntity.ok(response);
+    }
+
 }
 

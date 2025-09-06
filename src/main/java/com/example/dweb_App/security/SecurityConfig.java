@@ -2,7 +2,10 @@ package com.example.dweb_App.security;
 
 import com.example.dweb_App.security.filters.JwtAuthenticationFilter;
 import com.example.dweb_App.security.filters.JwtAuthorizationFilter;
+import com.example.dweb_App.security.filters.PasswordChangeCheckFilter;
+import com.example.dweb_App.security.repositories.AppUserRepository;
 import com.example.dweb_App.security.service.CustomUserDetailsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +38,11 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
+    private final PasswordChangeCheckFilter passwordChangeCheckFilter;
+    private final AppUserRepository userRepository;          // ← ADD
+    private final ObjectMapper objectMapper;
+
+
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -51,6 +59,8 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/auth/change-password").permitAll() // ← ADD THIS!
+                        .requestMatchers("/auth/password-requirement").permitAll() // ← ADD THIS!
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers(HttpMethod.POST,"/users").permitAll()
@@ -70,8 +80,7 @@ public class SecurityConfig {
 
         //add filters:
 
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager);
-        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(userDetailsService);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, userRepository, objectMapper);        JwtAuthorizationFilter jwtAuthorizationFilter = new JwtAuthorizationFilter(userDetailsService);
 
         http
                 .exceptionHandling(exceptions -> exceptions
@@ -80,6 +89,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(passwordChangeCheckFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilter(jwtAuthenticationFilter)
                 .addFilterAfter(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class);
 

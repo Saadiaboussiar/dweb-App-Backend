@@ -1,0 +1,9 @@
+ALTER TABLE app_user
+ADD COLUMN password_change_required BOOLEAN DEFAULT TRUE NOT NULL;
+
+ALTER TABLE app_user
+ADD COLUMN enabled BOOLEAN DEFAULT TRUE NOT NULL;
+
+
+ALTER TABLE app_user
+ADD COLUMN created_at DATE;

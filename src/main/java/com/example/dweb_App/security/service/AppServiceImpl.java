@@ -6,6 +6,10 @@ import com.example.dweb_App.security.entities.AppRole;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.repositories.AppRoleRepository;
 import com.example.dweb_App.security.repositories.AppUserRepository;
+import com.google.api.Authentication;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +51,12 @@ public class AppServiceImpl implements AppService {
         }
         String pw=appUser.getPassword();
         appUser.setPassword(passwordEncoder.encode(pw));
-        return appUserRepository.save(appUser);
+
+        AppUser user=appUserRepository.save(appUser);
+
+        addRoleToUser("USER", user.getEmail());
+
+        return user;
 
     }
 
@@ -61,6 +70,7 @@ public class AppServiceImpl implements AppService {
 
     @Override
     public void addRoleToUser(String roleName, String email) {
+
         AppRole appRole= appRoleRepository.findByRoleName(roleName)
                 .orElseThrow(()->new EntityNotFoundException("Ce role n'existe pas"));
         AppUser appUser =appUserRepository.findByEmail(email)
@@ -92,6 +102,8 @@ public class AppServiceImpl implements AppService {
                                     .collect(Collectors.toList());
         return rolesNames;
     }
+
+
 
 
 }

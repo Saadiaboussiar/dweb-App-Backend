@@ -2,6 +2,9 @@ package com.example.dweb_App.security.filters;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.example.dweb_App.security.entities.AppRole;
+import com.example.dweb_App.security.entities.AppUser;
+import com.example.dweb_App.security.repositories.AppUserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,15 +22,24 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    private final AppUserRepository userRepository;
+    private final ObjectMapper objectMapper;
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager,
+                                   AppUserRepository userRepository,
+                                   ObjectMapper objectMapper) {
         super.setAuthenticationManager(authenticationManager);
+        this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
     }
+
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -42,23 +54,42 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         System.out.println("successfulAuthentication");
+
         User user=(User) authResult.getPrincipal();
+
+        boolean passwordChangeRequired = userRepository.findByEmail(user.getUsername())
+                .map(AppUser::isPasswordChangeRequired)
+                .orElse(false);
+
         Algorithm algorithm1=Algorithm.HMAC256("mySecret2005");
+        List<String> rolesList=user.getAuthorities().stream().map(ga->ga.getAuthority()).collect(Collectors.toList());
+
         String jwtAccessToken= JWT.create()
                 .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis()+15*60*1000))
+                .withExpiresAt(new Date(System.currentTimeMillis()+30*60*1000))
                 .withIssuer(request.getRequestURL().toString())
-                .withClaim("roles",user.getAuthorities().stream().map(ga->ga.getAuthority()).collect(Collectors.toList())) //On transforme une collection de type AppRole a une to type string
+                .withClaim("roles",rolesList) //On transforme une collection de type AppRole a une to type string
+                .withClaim("pwdChangeRequired", passwordChangeRequired)
                 .sign(algorithm1);
 
         String jwtRefreshToken= JWT.create()
                 .withSubject(user.getUsername())
                 .withExpiresAt(new Date(System.currentTimeMillis()+60*60*1000))
                 .withIssuer(request.getRequestURL().toString())
+                .withClaim("pwdChangeRequired", passwordChangeRequired)
                 .sign(algorithm1);
-        Map<String,String> idToken=new HashMap<>();
+
+        Map<String,Object> idToken=new HashMap<>();
         idToken.put("access-token",jwtAccessToken);
         idToken.put("refresh-token",jwtRefreshToken);
+        idToken.put("passwordChangeRequired", passwordChangeRequired);
+        idToken.put("roles",rolesList);
+
+        if (passwordChangeRequired) {
+            idToken.put("redirect", "/change-password");
+            idToken.put("message", "Password change required. Please update your password.");
+        }
+
         response.setContentType("application/json");
         new ObjectMapper().writeValue(response.getOutputStream(),idToken);
 

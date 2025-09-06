@@ -1,6 +1,7 @@
 package com.example.dweb_App;
 
 import com.google.api.client.util.Value;
+import com.resend.Resend;
 import jakarta.annotation.PostConstruct;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -21,6 +22,7 @@ public class DwebAppApplication {
 	public static void main(String[] args) {
 
 		SpringApplication.run(DwebAppApplication.class, args);
+
 	}
 
 	@Bean

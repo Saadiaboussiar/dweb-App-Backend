@@ -1,4 +1,4 @@
-package com.example.dweb_App.web;
+package com.example.dweb_App.web.controllers;
 
 import com.example.dweb_App.data.entities.*;
 import com.example.dweb_App.data.service.BonInterventionService;
@@ -6,15 +6,12 @@ import com.example.dweb_App.data.service.ClientService;
 import com.example.dweb_App.data.service.InterventionService;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.request.BonInterventionCreateDTO;
-import com.example.dweb_App.dto.response.InterventionDetailsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -118,6 +115,7 @@ public class IntrventionVoucherController {
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping
     public ResponseEntity<List<BonIntervention>> getBonIntervention(){
+
         List<BonIntervention> bonInterventions=bonInterventionService.allInterventions();
         if(!bonInterventions.isEmpty()){
             return ResponseEntity.ok(bonInterventions);

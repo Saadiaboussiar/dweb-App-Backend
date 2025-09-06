@@ -1,4 +1,4 @@
-package com.example.dweb_App.web;
+package com.example.dweb_App.web.controllers;
 
 import com.example.dweb_App.dto.response.ErrorResponse;
 import com.example.dweb_App.exception.BusinessException;
@@ -8,14 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -212,6 +211,16 @@ public class GlobalExceptionHandler {
         response.put("documentation", "/api/docs#required-parameters");
 
         return new ResponseEntity<>(response,HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(CredentialsExpiredException.class)
+    public ResponseEntity<?> handleCredentialsExpired(CredentialsExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "error", "Password change required",
+                        "message", "You must change your password before proceeding",
+                        "redirect", "/change-password"
+                ));
     }
 
 }

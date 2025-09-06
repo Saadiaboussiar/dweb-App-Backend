@@ -1,4 +1,4 @@
-package com.example.dweb_App.web;
+package com.example.dweb_App.web.controllers;
 
 import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.service.ClientService;
@@ -8,9 +8,7 @@ import com.example.dweb_App.exception.UpdateFailedException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

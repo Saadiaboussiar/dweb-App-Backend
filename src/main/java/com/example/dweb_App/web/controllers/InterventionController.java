@@ -1,4 +1,4 @@
-package com.example.dweb_App.web;
+package com.example.dweb_App.web.controllers;
 
 import com.example.dweb_App.data.entities.*;
 import com.example.dweb_App.data.service.BonInterventionService;
@@ -8,7 +8,6 @@ import com.example.dweb_App.dto.response.InterventionEssentialsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
