@@ -4,6 +4,7 @@ import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.request.TechnicianCreateDTO;
 import com.example.dweb_App.dto.response.TechnicianResponseDTO;
+import com.example.dweb_App.dto.response.UserProfileDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.exception.UpdateFailedException;
 import com.example.dweb_App.security.entities.AppUser;
@@ -128,28 +129,13 @@ public class TechnicianController {
         ));
     }
 
-    @GetMapping("/profileeInfo/{id}")
-    public ResponseEntity<?> getTechnicianById(@PathVariable Long id){
 
-        Technician technician=technicianService.loadTechnicianById(id)
-                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+id));
 
-        TechnicianResponseDTO technicianResponse=TechnicianResponseDTO.builder()
-                .cin(technician.getCin())
-                .cnss(technician.getCnss())
-                .phoneNumber(technician.getPhoneNumber())
-                .email(technician.getEmail())
-                .lastName(technician.getLastName())
-                .firstName(technician.getFirstName())
-                .profileUrl(technician.getPhotoUrl())
-                .build();
-        return ResponseEntity.ok(technicianResponse);
-    }
+    @PostMapping("/profilePhoto/{technicianId}")
+    public  ResponseEntity<?> getTechnicianById(@PathVariable Long technicianId,@RequestParam("file") MultipartFile profilePhoto){
 
-    @PostMapping("/profilePhoto/{id}")
-    public  ResponseEntity<?> getTechnicianById(@PathVariable Long id,@RequestBody MultipartFile profilePhoto){
-        Technician technician=technicianService.loadTechnicianById(id)
-                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+id));
+        Technician technician=technicianService.loadTechnicianById(technicianId)
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
 
         try {
             if (profilePhoto == null || profilePhoto.isEmpty()) {
@@ -173,4 +159,45 @@ public class TechnicianController {
         }
     }
 
+    @GetMapping("/getProfile/{technicianId}")
+    public ResponseEntity<?> getTechnicianProfile(@PathVariable Long technicianId){
+
+        Technician technician=technicianService.loadTechnicianById(technicianId)
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
+
+        UserProfileDTO userProfile= UserProfileDTO.builder()
+                .fullName(technician.getFirstName()+" "+technician.getLastName())
+                .email(technician.getEmail())
+                .phoneNumber(technician.getPhoneNumber())
+                .cin(technician.getCin()).build();
+
+        return ResponseEntity.ok(userProfile);
+    }
+
+    @PutMapping("/editProfile/{technicianId}")
+    public ResponseEntity<?> editTechnicianProfile(@PathVariable Long technicianId,@RequestBody UserProfileDTO userProfileUpdates ){
+
+        Technician technician=technicianService.loadTechnicianById(technicianId)
+                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
+
+        String[] parts = userProfileUpdates.getFullName().trim().split("\\s+");
+        String firstName = parts[0];
+        String lastName=parts[1];
+
+        technician.setEmail(userProfileUpdates.getEmail());
+        technician.setCin(userProfileUpdates.getCin());
+        technician.setPhoneNumber(userProfileUpdates.getPhoneNumber());
+        technician.setFirstName(firstName);
+        technician.setLastName(lastName);
+        technician.setCnss(technician.getCnss());
+        technician.setId(technician.getId());
+        technician.setPhotoUrl(technician.getPhotoUrl());
+        technician.setCar(technician.getCar());
+        technician.setBonInterventions(technician.getBonInterventions());
+        technician.setInterventions(technician.getInterventions());
+
+        technicianService.saveTechnician(technician);
+
+        return ResponseEntity.ok("technician is well updated");
+    }
 }
