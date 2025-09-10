@@ -15,4 +15,5 @@ public interface AppService {
     Optional<AppUser> loadUserByUsername(String username);
     List<AppUser> UsersList();
     Collection<String> getRolesOfUser(AppUser user);
+    void deleteUserById(Long userId);
 }

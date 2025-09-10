@@ -10,8 +10,13 @@ import java.util.Collection;
 @Data
 @NoArgsConstructor  @AllArgsConstructor @Builder @ToString
 public class Technician {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tech_seq")
+    @SequenceGenerator(name = "tech_seq", sequenceName = "tech_id_seq", allocationSize = 1)
+
     private Long id; //I dont know if its CIN , or another id
+
     private String firstName;
     private String lastName;
     private String email;

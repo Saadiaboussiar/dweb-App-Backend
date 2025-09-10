@@ -1,5 +1,7 @@
 package com.example.dweb_App.utils;
 
+import com.example.dweb_App.data.entities.Technician;
+import com.example.dweb_App.data.repositories.TechnicianRepository;
 import com.example.dweb_App.dto.response.ChangePasswordResponse;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.security.entities.AppUser;
@@ -22,12 +24,14 @@ public class PasswordService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final TechnicianRepository technicianRepository;
 
-    public PasswordService(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider, AuthenticationManager authenticationManager) {
+    public PasswordService(AppUserRepository appUserRepository, PasswordEncoder passwordEncoder, JwtTokenProvider tokenProvider, AuthenticationManager authenticationManager, TechnicianRepository technicianRepository) {
         this.appUserRepository = appUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
+        this.technicianRepository = technicianRepository;
     }
 
     public static String generatePassword(){
@@ -45,6 +49,10 @@ public class PasswordService {
 
         AppUser user = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        Technician technician=technicianRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Technician not found"));
+
 
         if (!user.isPasswordChangeRequired()) {
             throw new IllegalStateException("Password change not required");
@@ -70,7 +78,7 @@ public class PasswordService {
         String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
         ChangePasswordResponse changePasswordResponse= ChangePasswordResponse.builder()
-                .technicianId(user.getId())
+                .technicianId(technician.getId())
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .message("Password changed successfully")

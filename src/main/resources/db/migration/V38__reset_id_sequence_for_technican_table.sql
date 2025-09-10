@@ -1,0 +1,1 @@
+SELECT setval(pg_get_serial_sequence('technician', 'id'), (SELECT MAX(id) FROM technician) + 1);

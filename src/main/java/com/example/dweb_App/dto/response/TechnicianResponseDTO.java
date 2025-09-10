@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 @Data @AllArgsConstructor @NoArgsConstructor @Builder
 public class TechnicianResponseDTO {
+    private Long id;
     private String profileUrl;
     private String firstName;
     private String lastName;
@@ -15,5 +16,4 @@ public class TechnicianResponseDTO {
     private String phoneNumber;
     private String cin;
     private String cnss;
-
 }

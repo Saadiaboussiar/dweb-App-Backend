@@ -103,7 +103,10 @@ public class AppServiceImpl implements AppService {
         return rolesNames;
     }
 
-
+    @Override
+    public void deleteUserById(Long userId) {
+        appUserRepository.deleteById(userId);
+    }
 
 
 }

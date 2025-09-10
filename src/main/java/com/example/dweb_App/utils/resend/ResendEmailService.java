@@ -46,11 +46,31 @@ public class ResendEmailService {
                     String.class
             );
 
-            return response.getStatusCode() == HttpStatus.OK;
+            if (response.getStatusCode() == HttpStatus.OK) {
+                System.out.println("Email sent successfully to: " + toEmail);
+                System.out.println("API Response: " + response.getBody()); // Log the response
+                return true;
+            } else {
+                // Log if we get any other unexpected status code
+                System.err.println("Failed to send email. Received status: " + response.getStatusCode());
+                System.err.println("Response body: " + response.getBody());
+                return false;
+            }
+
 
         } catch (Exception e) {
-            System.err.println("Failed to send email: " + e.getMessage());
+            System.err.println("Failed to send email to: " + toEmail);
+            System.err.println("Exception: " + e.getClass().getSimpleName());
+
+            // This will print the full error response from Resend if available
+            if (e instanceof org.springframework.web.client.HttpClientErrorException httpClientErrorException) {
+                System.err.println("Status Code: " + httpClientErrorException.getStatusCode());
+                System.err.println("Response Body: " + httpClientErrorException.getResponseBodyAsString()); // <-- This is GOLD
+            } else {
+                System.err.println("Error Message: " + e.getMessage());
+            }
             return false;
+
         }
     }
 

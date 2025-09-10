@@ -1,8 +1,10 @@
 package com.example.dweb_App.web.controllers;
 
+import com.example.dweb_App.data.entities.Intervention;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.request.TechnicianCreateDTO;
+import com.example.dweb_App.dto.response.InterventionDetailsDTO;
 import com.example.dweb_App.dto.response.TechnicianResponseDTO;
 import com.example.dweb_App.dto.response.UserProfileDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
@@ -14,6 +16,7 @@ import com.example.dweb_App.utils.resend.ResendEmailService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +51,24 @@ public class TechnicianController {
 
     @PostAuthorize("hasAuthority('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Technician>> getAllTechnicians(){
+    public ResponseEntity<List<TechnicianResponseDTO>> getAllTechnicians(){
 
        List<Technician> technicians=technicianService.allTechnicians();
        if(!technicians.isEmpty()){
-            return ResponseEntity.ok(technicians);
+           List<TechnicianResponseDTO> technicianResponseList=new ArrayList<>();
+           for(Technician technician:technicians){
+               TechnicianResponseDTO technicianResponse= TechnicianResponseDTO.builder()
+                       .id(technician.getId())
+                       .firstName(technician.getFirstName())
+                       .lastName(technician.getLastName())
+                       .email(technician.getEmail())
+                       .phoneNumber(technician.getPhoneNumber())
+                       .cin(technician.getCin())
+                       .cnss(technician.getCnss())
+                       .profileUrl(technician.getPhotoUrl()).build();
+               technicianResponseList.add(technicianResponse);
+           }
+            return ResponseEntity.ok(technicianResponseList);
         }
        return ResponseEntity.noContent().build();
 
@@ -75,6 +92,8 @@ public class TechnicianController {
                     .username(username)
                     .password(tempPassword)
                     .userRoles(new ArrayList<>())
+                    .passwordChangeRequired(true)
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             appService.addNewUser(newUser);
@@ -123,81 +142,53 @@ public class TechnicianController {
                 .orElseThrow(()->new EntityNotFoundException("Technician not Found "+id));
 
         technicianService.deleteTechnicianById(id);
+        String username=technician.getFirstName()+" "+technician.getLastName();
+        AppUser user=appService.loadUserByUsername(username)
+                .orElseThrow(()->new EntityNotFoundException("User not Found "+username));
+        appService.deleteUserById(user.getId());
+
         return ResponseEntity.ok(Map.of(
-                "message", "Client deleted successfully",
-                "clientName", technician.getFirstName(),' ', technician.getLastName()
+                "message: ", "Technician deleted successfully",
+                "technician name: ", username
         ));
     }
 
+    @GetMapping("/{technicianEmail}")
+    public ResponseEntity<?> getTechnicianInterventions(@PathVariable String technicianEmail) {
 
+        Technician technician = technicianService.loadTechnicianByEmail(technicianEmail)
+                .orElseThrow(() -> new EntityNotFoundException("Technician Not Found " + technicianEmail));
+        List<Intervention> interventions = technician.getInterventions().stream().toList();
 
-    @PostMapping("/profilePhoto/{technicianId}")
-    public  ResponseEntity<?> getTechnicianById(@PathVariable Long technicianId,@RequestParam("file") MultipartFile profilePhoto){
+        if (!interventions.isEmpty()) {
+            List<InterventionDetailsDTO> interventionDetailsDTOList = new ArrayList<>();
 
-        Technician technician=technicianService.loadTechnicianById(technicianId)
-                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
+            for (Intervention intervention : interventions) {
+                InterventionDetailsDTO interventionDetailsDTO = InterventionDetailsDTO.builder()
+                        .client(intervention.getBI().getClient().getFullName())
+                        .interId(intervention.getId())
+                        .technicianFN(intervention.getTechnician().getFirstName())
+                        .technicianLN(intervention.getTechnician().getLastName())
+                        .km(intervention.getBI().getKm())
+                        .date(intervention.getBI().getDate())
+                        .ville(intervention.getBI().getVille())
+                        .startTime(intervention.getBI().getStartTime())
+                        .finishTime(intervention.getBI().getFinishTime())
+                        .duration(intervention.getBI().getDuration())
+                        .submittedAt(intervention.getSubmissionDate())
+                        .interUrl(intervention.getBI().getBonImageUrl())
+                        .nbreIntervenant(intervention.getBI().getNumberIntervenant())
+                        .build();
 
-        try {
-            if (profilePhoto == null || profilePhoto.isEmpty()) {
-                return ResponseEntity.badRequest().body("No file uploaded.");
+                interventionDetailsDTOList.add(interventionDetailsDTO);
             }
 
-            String filename = UUID.randomUUID() + "-" + profilePhoto.getOriginalFilename();
-            String projectRoot = System.getProperty("user.dir");
-            Path uploadDir = Paths.get(projectRoot, "uploads", "technicians-photos");
-            Path filePath = uploadDir.resolve(filename);
-            String relativePath = "uploads/technicians-photos/" + filename;
-
-            profilePhoto.transferTo(filePath.toFile());
-
-            technician.setPhotoUrl("http://localhost:9090/"+filePath.toString());
-            technicianService.saveTechnician(technician);
-
-            return ResponseEntity.ok("profile de technicien est bien enregistré");
-        }catch (Exception e){
-            return ResponseEntity.badRequest().body("Invalid JSON format: " + e.getMessage());
+            return ResponseEntity.ok(interventionDetailsDTOList);
         }
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/getProfile/{technicianId}")
-    public ResponseEntity<?> getTechnicianProfile(@PathVariable Long technicianId){
 
-        Technician technician=technicianService.loadTechnicianById(technicianId)
-                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
 
-        UserProfileDTO userProfile= UserProfileDTO.builder()
-                .fullName(technician.getFirstName()+" "+technician.getLastName())
-                .email(technician.getEmail())
-                .phoneNumber(technician.getPhoneNumber())
-                .cin(technician.getCin()).build();
 
-        return ResponseEntity.ok(userProfile);
-    }
-
-    @PutMapping("/editProfile/{technicianId}")
-    public ResponseEntity<?> editTechnicianProfile(@PathVariable Long technicianId,@RequestBody UserProfileDTO userProfileUpdates ){
-
-        Technician technician=technicianService.loadTechnicianById(technicianId)
-                .orElseThrow(()->new EntityNotFoundException("Technician not Found "+technicianId));
-
-        String[] parts = userProfileUpdates.getFullName().trim().split("\\s+");
-        String firstName = parts[0];
-        String lastName=parts[1];
-
-        technician.setEmail(userProfileUpdates.getEmail());
-        technician.setCin(userProfileUpdates.getCin());
-        technician.setPhoneNumber(userProfileUpdates.getPhoneNumber());
-        technician.setFirstName(firstName);
-        technician.setLastName(lastName);
-        technician.setCnss(technician.getCnss());
-        technician.setId(technician.getId());
-        technician.setPhotoUrl(technician.getPhotoUrl());
-        technician.setCar(technician.getCar());
-        technician.setBonInterventions(technician.getBonInterventions());
-        technician.setInterventions(technician.getInterventions());
-
-        technicianService.saveTechnician(technician);
-
-        return ResponseEntity.ok("technician is well updated");
-    }
 }

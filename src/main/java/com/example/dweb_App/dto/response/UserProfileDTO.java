@@ -9,4 +9,6 @@ public class UserProfileDTO {
     private String email;
     private String phoneNumber;
     private String cin;
+    private String profileUrl;
+    private String role;
 }

@@ -42,8 +42,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        System.out.println("attemptAuthentication");
+    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {System.out.println("attemptAuthentication");
        String email = request.getParameter("email");
        String password = request.getParameter("password");
        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
@@ -84,6 +83,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         idToken.put("refresh-token",jwtRefreshToken);
         idToken.put("passwordChangeRequired", passwordChangeRequired);
         idToken.put("roles",rolesList);
+        idToken.put("userEmail",user.getUsername());
 
         if (passwordChangeRequired) {
             idToken.put("redirect", "/change-password");

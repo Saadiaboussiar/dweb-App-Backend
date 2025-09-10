@@ -78,7 +78,7 @@ public class InterventionController {
                 Technician technician=intervention.getTechnician();
                 String firstName= technician.getFirstName();
                 String lastName= technician.getLastName();
-                String technicianFullName=firstName+lastName;
+                String technicianFullName=firstName+" "+lastName;
 
                 BonIntervention bonIntervention=intervention.getBI();
                 Client client=bonIntervention.getClient();
