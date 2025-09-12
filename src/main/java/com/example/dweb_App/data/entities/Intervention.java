@@ -3,6 +3,8 @@ package com.example.dweb_App.data.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Collection;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -31,6 +33,8 @@ public class Intervention {
 
     private int points;
 
+    @OneToMany(mappedBy = "intervention", cascade = CascadeType.ALL)
+    private Collection<Notifications> notifications;
 
 
 }

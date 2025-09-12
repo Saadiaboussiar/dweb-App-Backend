@@ -79,16 +79,17 @@ public class ResendEmailService {
             <!DOCTYPE html>
             <html>
             <body>
-                <h2>Welcome to Our App, %s!</h2>
-                <p>Your account has been created successfully.</p>
-                <p><strong>email:</strong> %s</p>
-                <p><strong>Temporary Password:</strong> %s</p>
-                <p>Please change your password after first login.</p>
+                <h2>Bienvenue sur notre application, %s !</h2>
+                <p>Votre compte a été créé avec succès.</p>
+                <p><strong>E-mail :</strong> %s</p>
+                <p><strong>Mot de passe temporaire :</strong> %s</p>
+                <p>Veuillez changer votre mot de passe après votre première connexion.</p>
+                
             </body>
             </html>
             """.formatted(username,toEmail,tempPassword);
 
-        boolean success = sendEmail(toEmail, "Welcome to Our App", htmlContent);
+        boolean success = sendEmail(toEmail, "Bienvenue sur notre application", htmlContent);
 
         if (success) {
             System.out.println("Welcome email sent to: " + toEmail);
@@ -96,4 +97,26 @@ public class ResendEmailService {
             System.out.println("Failed to send welcome email to: " + toEmail);
         }
     }
+
+    public void sendVerifyCodeEmail(String toEmail,String username ,String verifyCode) {
+        String htmlContent = """
+            <!DOCTYPE html>
+            <html>
+            <body>
+                <h2>Application des interventions de Dweb Technology </h2>
+                <p>Vous avez oublié votre mmode passe, %s!</p>
+                <p><strong>Votre code:</strong> %s</p>
+                </body>
+            </html>
+            """.formatted(username,verifyCode);
+
+        boolean success = sendEmail(toEmail, "Code de vérification", htmlContent);
+
+        if (success) {
+            System.out.println("Verify Code sent to: " + toEmail);
+        } else {
+            System.out.println("Failed to send verify code to: " + toEmail);
+        }
+    }
+
 }

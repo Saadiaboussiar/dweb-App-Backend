@@ -24,6 +24,7 @@ public class Technician {
     private String cin;
     private String photoUrl; //path to the photo
     private String cnss;//il faut avoir une autre table pour ca (ou si il s'agit seulement de nom)
+
     @ManyToOne
     @JoinColumn(name = "car_matricule", referencedColumnName = "matricule")
     private Car car;
@@ -35,5 +36,8 @@ public class Technician {
     @OneToMany(mappedBy = "technician")
     @JsonIgnore
     private  Collection<Intervention> interventions;
+
+    @OneToMany(mappedBy = "technician", cascade = CascadeType.ALL)
+    private Collection<Notifications> notifications;
 
 }

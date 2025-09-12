@@ -5,6 +5,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.dto.request.ChangePasswordRequest;
 import com.example.dweb_App.dto.request.UserCreateDTO;
 import com.example.dweb_App.dto.response.ChangePasswordResponse;
@@ -13,6 +14,7 @@ import com.example.dweb_App.security.entities.AppRole;
 import com.example.dweb_App.security.entities.AppUser;
 import com.example.dweb_App.security.service.AppService;
 import com.example.dweb_App.utils.PasswordService;
+import com.example.dweb_App.utils.resend.ResendEmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +31,8 @@ import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.example.dweb_App.utils.PasswordService.generateVerifyCode;
+
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -37,11 +41,13 @@ public class AuthController {
     private AppService appService;
     private PasswordService passwordService;
     private AuthenticationManager authenticationManager;
+    private ResendEmailService resendEmailService;
 
-    public AuthController(AppService appService, PasswordService passwordService, AuthenticationManager authenticationManager) {
+    public AuthController(AppService appService, PasswordService passwordService, AuthenticationManager authenticationManager, ResendEmailService resendEmailService) {
         this.appService = appService;
         this.passwordService = passwordService;
         this.authenticationManager = authenticationManager;
+        this.resendEmailService = resendEmailService;
     }
 
 
@@ -110,21 +116,51 @@ public class AuthController {
 
 
 
-    @PostMapping("/auth/change-password")
+    @PutMapping("/auth/change-password")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request,
                                             @RequestHeader("Authorization") String authHeader) {
-        // Extract token and process password change
-        String token = authHeader.substring(7);
-        Algorithm algo = Algorithm.HMAC256("mySecret2005");
-        JWTVerifier jwtVerifier = JWT.require(algo).build();
-        DecodedJWT decodeJwt = jwtVerifier.verify(token);
-        String username = decodeJwt.getSubject();
 
-        // Your password change logic here
-        ChangePasswordResponse response =passwordService.forcePasswordChange(username, request.getCurrentPassword(), request.getNewPassword(),request.getConfirmPassword());
+
+            // Extract token and process password change
+            String token = authHeader.substring(7);
+            Algorithm algo = Algorithm.HMAC256("mySecret2005");
+            JWTVerifier jwtVerifier = JWT.require(algo).build();
+            DecodedJWT decodeJwt = jwtVerifier.verify(token);
+            String username = decodeJwt.getSubject();
+
+            // Your password change logic here
+        ChangePasswordResponse response= passwordService.forcePasswordChange(username, request);
 
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/sendVerifyCode/{email}")
+    public ResponseEntity<?> sendVerifyCode(@PathVariable String email) {
+
+        AppUser user = appService.loadUserBYEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("Utilisateur Not Found " + email));
+        try {
+            String username = user.getUsername();
+
+            String verifyCode = generateVerifyCode();
+
+            resendEmailService.sendVerifyCodeEmail(email, username, verifyCode);
+
+            return ResponseEntity.ok(verifyCode);
+        } catch (Exception exception) {
+            throw exception;
+        }
+    }
+
+    @PutMapping("/auth/forgot-pw/{email}")
+    public ResponseEntity<?> setNewPassword(@PathVariable String email, @RequestBody ChangePasswordRequest request) {
+
+        ChangePasswordResponse response =passwordService.forcePasswordChange(email, request);
+
+        return ResponseEntity.ok(response);
+
+    }
+
 
 }
 

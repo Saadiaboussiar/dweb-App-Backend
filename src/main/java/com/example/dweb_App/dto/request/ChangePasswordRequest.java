@@ -1,5 +1,6 @@
 package com.example.dweb_App.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Data;
 
 @Data @Builder
 public class ChangePasswordRequest {
+
     @NotBlank
     @Size(min=8,message="Le mot de passe doit être au moins 8 caractères")
     private String newPassword;

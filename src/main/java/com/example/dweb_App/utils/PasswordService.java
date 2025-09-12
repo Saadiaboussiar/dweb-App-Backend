@@ -2,6 +2,7 @@ package com.example.dweb_App.utils;
 
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.repositories.TechnicianRepository;
+import com.example.dweb_App.dto.request.ChangePasswordRequest;
 import com.example.dweb_App.dto.response.ChangePasswordResponse;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import com.example.dweb_App.security.entities.AppUser;
@@ -19,6 +20,7 @@ import java.security.SecureRandom;
 @Transactional
 public class PasswordService {
     private static final String characters="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final String numbers="0123456789";
     private static final SecureRandom random=new SecureRandom();
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
@@ -45,7 +47,19 @@ public class PasswordService {
         return password.toString();
     }
 
-    public ChangePasswordResponse forcePasswordChange(String email, String currentPassword,String newPassword,String confirmPassword) {
+    public static String generateVerifyCode(){
+        StringBuilder verifyCode=new StringBuilder();
+
+        for(int i=0;i<8;i++){
+            int index=random.nextInt(numbers.length());
+            verifyCode.append(numbers.charAt(index));
+        }
+
+        return verifyCode.toString();
+    }
+
+
+    public ChangePasswordResponse forcePasswordChange(String email, ChangePasswordRequest request) {
 
         AppUser user = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -53,8 +67,10 @@ public class PasswordService {
         Technician technician=technicianRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("Technician not found"));
 
+        String newPassword= request.getNewPassword();
+        String confirmPassword= request.getConfirmPassword();
 
-        if (!user.isPasswordChangeRequired()) {
+        if (!user.isPasswordChangeRequired() && request.getCurrentPassword()!=null) {
             throw new IllegalStateException("Password change not required");
         }
 

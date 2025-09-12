@@ -50,6 +50,7 @@ public class ProfileService {
                 .profileUrl(admin.getProfileUrl())
                 .role("ADMIN")
                 .cin(null)
+                .carMatricule(null)
                 .build();
     }
 
@@ -61,6 +62,7 @@ public class ProfileService {
                 .role("TECHNICIAN")
                 .phoneNumber(technician.getPhoneNumber())
                 .cin(technician.getCin())
+                .carMatricule(technician.getCar().getMatricule())
                 .build();
     }
 

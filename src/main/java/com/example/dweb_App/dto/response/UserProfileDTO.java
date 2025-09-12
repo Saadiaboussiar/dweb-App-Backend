@@ -11,4 +11,5 @@ public class UserProfileDTO {
     private String cin;
     private String profileUrl;
     private String role;
+    private String carMatricule;
 }

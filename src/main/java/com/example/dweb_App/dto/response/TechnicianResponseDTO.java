@@ -16,4 +16,5 @@ public class TechnicianResponseDTO {
     private String phoneNumber;
     private String cin;
     private String cnss;
+    private String carMatricule;
 }

@@ -65,6 +65,7 @@ public class TechnicianController {
                        .phoneNumber(technician.getPhoneNumber())
                        .cin(technician.getCin())
                        .cnss(technician.getCnss())
+                       .carMatricule(technician.getCar().getMatricule())
                        .profileUrl(technician.getPhotoUrl()).build();
                technicianResponseList.add(technicianResponse);
            }
@@ -178,6 +179,7 @@ public class TechnicianController {
                         .submittedAt(intervention.getSubmissionDate())
                         .interUrl(intervention.getBI().getBonImageUrl())
                         .nbreIntervenant(intervention.getBI().getNumberIntervenant())
+                        .status(intervention.getStatus())
                         .build();
 
                 interventionDetailsDTOList.add(interventionDetailsDTO);

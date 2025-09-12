@@ -78,11 +78,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .withClaim("pwdChangeRequired", passwordChangeRequired)
                 .sign(algorithm1);
 
+        String role;
+        if(rolesList.size()==2) role="ADMIN";
+        else role="USER";
+
         Map<String,Object> idToken=new HashMap<>();
+
         idToken.put("access-token",jwtAccessToken);
         idToken.put("refresh-token",jwtRefreshToken);
         idToken.put("passwordChangeRequired", passwordChangeRequired);
-        idToken.put("roles",rolesList);
+        idToken.put("role",role);
         idToken.put("userEmail",user.getUsername());
 
         if (passwordChangeRequired) {
