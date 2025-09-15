@@ -1,0 +1,5 @@
+ALTER TABLE notifications
+ALTER COLUMN created_at TYPE VARCHAR(255);
+
+ALTER TABLE notifications
+ALTER COLUMN read_at TYPE VARCHAR(255);

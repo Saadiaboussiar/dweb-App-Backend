@@ -2,7 +2,9 @@ package com.example.dweb_App.web.controllers;
 
 import com.example.dweb_App.data.entities.*;
 import com.example.dweb_App.data.service.BonInterventionService;
+import com.example.dweb_App.data.service.ClientService;
 import com.example.dweb_App.data.service.InterventionService;
+import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.response.InterventionDetailsDTO;
 import com.example.dweb_App.dto.response.InterventionEssentialsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
@@ -25,10 +27,14 @@ import java.util.*;
 public class InterventionController {
     private InterventionService interventionService;
     private BonInterventionService bonInterventionService;
+    private TechnicianService technicianService;
+    private ClientService clientService;
 
-    public InterventionController(InterventionService interventionService, BonInterventionService bonInterventionService) {
+    public InterventionController(InterventionService interventionService, BonInterventionService bonInterventionService, TechnicianService technicianService, ClientService clientService) {
         this.interventionService = interventionService;
         this.bonInterventionService = bonInterventionService;
+        this.technicianService = technicianService;
+        this.clientService = clientService;
     }
 
 
@@ -56,6 +62,7 @@ public class InterventionController {
                         .submittedAt(intervention.getSubmissionDate())
                         .interUrl(intervention.getBI().getBonImageUrl())
                         .nbreIntervenant(intervention.getBI().getNumberIntervenant())
+                        .status(intervention.getStatus())
                         .build();
 
                 interventionDetailsDTOList.add(interventionDetailsDTO);
@@ -144,6 +151,39 @@ public class InterventionController {
         int interventionPoints=intervention.getPoints();
         return ResponseEntity.ok(interventionPoints);
 
+
+    }
+
+
+    @PutMapping("/editIntervention/{interventionId}")
+    public ResponseEntity<?> editIntervention(@PathVariable Long interventionId, @RequestBody InterventionDetailsDTO interventionDetails){
+
+       Intervention intervention= interventionService.findInterventionById(interventionId)
+               .orElseThrow(()->new EntityNotFoundException("Intervention Not Found "+interventionId));
+
+       BonIntervention bonIntervention=intervention.getBI();
+       Client client=clientService.loadClient(interventionDetails.getClient())
+               .orElseThrow(()->new EntityNotFoundException("Client Not Found "+interventionDetails.getClient()));
+
+       Technician technician=technicianService.loadTechnician(interventionDetails.getTechnicianFN(),interventionDetails.getTechnicianLN())
+               .orElseThrow(()->new EntityNotFoundException("Client Not Found "+interventionDetails.getTechnicianFN()+interventionDetails.getTechnicianLN()));
+
+        bonIntervention.setClient(client);
+        bonIntervention.setTechnician(technician);
+        bonIntervention.setKm(interventionDetails.getKm());
+        bonIntervention.setDate(interventionDetails.getDate());
+        bonIntervention.setDuration(interventionDetails.getDuration());
+        bonIntervention.setFinishTime(interventionDetails.getFinishTime());
+        bonIntervention.setNumberIntervenant(interventionDetails.getNbreIntervenant());
+        bonIntervention.setStartTime(interventionDetails.getStartTime());
+        bonIntervention.setVille(interventionDetails.getVille());
+
+        intervention.setSubmissionDate(interventionDetails.getSubmittedAt());
+
+        bonInterventionService.addNewBonIntervention(bonIntervention);
+        interventionService.addNewIntervention(intervention);
+
+        return ResponseEntity.ok("Intervention was updated successfully");
 
     }
 

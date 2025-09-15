@@ -33,6 +33,9 @@ public class Intervention {
 
     private int points;
 
+    private boolean updated;
+    private String updateDateTime;
+
     @OneToMany(mappedBy = "intervention", cascade = CascadeType.ALL)
     private Collection<Notifications> notifications;
 

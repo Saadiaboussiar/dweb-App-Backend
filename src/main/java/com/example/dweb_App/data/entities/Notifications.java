@@ -34,12 +34,11 @@ public class Notifications {
     @JoinColumn(name = "intervention_id", nullable = false)
     private Intervention intervention;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead = false;
+    private Boolean read = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Column(name = "read_at")
-    private LocalDateTime readAt;
+    private String readAt;
 }

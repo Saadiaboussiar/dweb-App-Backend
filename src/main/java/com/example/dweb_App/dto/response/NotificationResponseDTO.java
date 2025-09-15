@@ -7,10 +7,10 @@ import lombok.Data;
 @Data @Builder
 public class NotificationResponseDTO {
     private Long id;
-    private Long intervention_id;
+    private Long interventionId;
     private String title;
     private String message;
     private String timestamp;
-    private boolean isRead;
+    private boolean read;
     private NotificationType type;
 }

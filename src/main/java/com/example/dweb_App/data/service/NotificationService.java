@@ -11,4 +11,6 @@ public interface NotificationService {
     Notifications saveNotification(Notifications notification);
     List<Notifications> getAllNotifications();
     Optional<Notifications> loadNotificationById(Long id);
+    void deleteNotification(Long notificationId);
+    void deleteAllNotifications();
 }

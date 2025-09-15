@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 public class TimeUtils {
 
     public static String formatTimeDifference(LocalDateTime pastTime) {
+
         LocalDateTime now = LocalDateTime.now();
         Duration duration = Duration.between(pastTime, now);
 

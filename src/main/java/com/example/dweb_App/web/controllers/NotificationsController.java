@@ -14,8 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
@@ -44,15 +46,20 @@ public class NotificationsController {
                 .orElseThrow(()->new EntityNotFoundException("Intervention Not Found"+request.getInterventionId()));
 
         String message;
-        if(request.getType().equals(NotificationType.INTERVENTION_VALIDATED)) message= "Votre intervention avec #" + request.getClientName() + " a été validée avec succès.";
-        else message = "Votre intervention avec #" + request.getClientName() + " a été rejetée.";
+        if(request.getType().equals(NotificationType.INTERVENTION_VALIDATED)) message= "Votre intervention avec " + request.getClientName() + " a été validée avec succès.";
+        else message = "Votre intervention avec " + request.getClientName() + " a été rejetée.";
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+        LocalDateTime now = LocalDateTime.now();
+        String formattedDateTime = now.format(formatter);
 
         Notifications notification=Notifications.builder()
                 .technician(technician)
                 .intervention(intervention)
                 .message(message)
-                .createdAt(LocalDateTime.now())
-                .isRead(false).build();
+                .type(request.getType())
+                .createdAt(formattedDateTime)
+                .read(false).build();
 
         notificationService.saveNotification(notification);
 
@@ -72,7 +79,11 @@ public class NotificationsController {
 
             for (Notifications notification : notifications) {
 
-                String duration = TimeUtils.formatTimeDifference(notification.getCreatedAt());
+                String createdAt=notification.getCreatedAt();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+                LocalDateTime localDate = LocalDateTime.parse(createdAt, formatter);
+
+                String duration = TimeUtils.formatTimeDifference(localDate);
 
                 NotificationResponseDTO notificationResponse = NotificationResponseDTO.builder()
                         .id(notification.getId())
@@ -80,8 +91,8 @@ public class NotificationsController {
                         .message(notification.getMessage())
                         .type(notification.getType())
                         .timestamp(duration)
-                        .isRead(false)
-                        .intervention_id(notification.getIntervention().getId())
+                        .read(notification.getRead())
+                        .interventionId(notification.getIntervention().getId())
                         .build();
 
                 notificationResponses.add(notificationResponse);
@@ -101,10 +112,31 @@ public class NotificationsController {
         Notifications notification=notificationService.loadNotificationById(notificationId)
                 .orElseThrow(()->new EntityNotFoundException("Notification Not Found "+notificationId));
 
-        notification.setReadAt(LocalDateTime.now());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+        LocalDateTime now = LocalDateTime.now();
+        String formattedDateTime = now.format(formatter);
+
+        notification.setRead(true);
+        notification.setReadAt(formattedDateTime);
 
         notificationService.saveNotification(notification);
 
         return ResponseEntity.ok("Notification was read successfully");
+    }
+
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<?> deleteNotification(@PathVariable Long notificationId){
+
+        notificationService.deleteNotification(notificationId);
+        return ResponseEntity.ok("Notification was deleted successfully");
+
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteAllNotification(){
+
+        notificationService.deleteAllNotifications();
+        return ResponseEntity.ok("Notifications were deleted successfully");
+
     }
 }
