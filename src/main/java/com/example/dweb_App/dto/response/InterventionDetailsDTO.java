@@ -24,5 +24,6 @@ public class InterventionDetailsDTO {
     private String interUrl;
     private String submittedAt;
     private InterventionStatus status;
-    
+    private boolean updated ;
+    private String updateTime;
 }

@@ -3,6 +3,7 @@ package com.example.dweb_App.data.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.Collection;
 
 @Entity
@@ -31,9 +32,12 @@ public class Intervention {
 
     private String actionDateTime;
 
-    private int points;
+    private int pointsEarned;
+    private BigDecimal bonusAmount;
 
-    private boolean updated;
+
+    private boolean updated=false;
+
     private String updateDateTime;
 
     @OneToMany(mappedBy = "intervention", cascade = CascadeType.ALL)

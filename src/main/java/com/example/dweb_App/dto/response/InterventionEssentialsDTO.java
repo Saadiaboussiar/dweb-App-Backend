@@ -15,4 +15,7 @@ public class InterventionEssentialsDTO {
     private String date;
     private Long interId;
     private InterventionStatus status;
+    private boolean updated ;
+    private String updateDateTime;
+
 }

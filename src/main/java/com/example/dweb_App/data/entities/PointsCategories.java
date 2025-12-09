@@ -1,23 +1,25 @@
 package com.example.dweb_App.data.entities;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public enum PointsCategories {
-    CATEGORY_0(0,000,"Catégorie 0", LocalTime.of(19,00)),
-    CATEGORY_A( 100,200, "Catégorie A", LocalTime.of(19,00)),
-    CATEGORY_B( 50,100, "Catégorie B",LocalTime.of(22,00)),
-    CATEGORY_C(25,50, "Catégorie C", LocalTime.of(00,00));
+
+    CATEGORY_0(0,new BigDecimal("0.00"),"Catégorie 0", LocalTime.of(19,00)),
+    CATEGORY_A( 100,new BigDecimal("200.00"), "Catégorie A", LocalTime.of(19,00)),
+    CATEGORY_B( 50,new BigDecimal("100.00"), "Catégorie B",LocalTime.of(22,00)),
+    CATEGORY_C(25,new BigDecimal("50.00"), "Catégorie C", LocalTime.of(00,00));
 
 
     public final int points;
-    public final int bonusAmount;
+    public final BigDecimal bonusAmount;
     public final String frenchName;
     public final LocalTime timeInterval;
 
-    PointsCategories(int points, int bonusAmount, String frenchName, LocalTime timeInterval) {
+    PointsCategories(int points, BigDecimal bonusAmount, String frenchName, LocalTime timeInterval) {
         this.points = points;
         this.bonusAmount = bonusAmount;
         this.frenchName = frenchName;

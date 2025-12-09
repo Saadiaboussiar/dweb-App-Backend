@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
@@ -109,6 +110,8 @@ public class InterventionController {
                         .date(date.toString())
                         .submittedAt(time.toString())
                         .status(intervention.getStatus())
+                        .updated(intervention.isUpdated())
+                        .updateDateTime(intervention.getUpdateDateTime())
                         .build();
 
                 interventionDetailsDTOList.add(interventionEssentials);
@@ -131,9 +134,14 @@ public class InterventionController {
 
     @PutMapping("/{interId}")
     public ResponseEntity<?> validateIntervention(@PathVariable Long interId, @RequestParam Boolean isValidate){
+        Intervention intervention= interventionService.findInterventionById(interId)
+                .orElseThrow(()->new EntityNotFoundException("Intervention Not Found "+interId));
+
+        Technician technician=intervention.getTechnician();
 
         try{
-            interventionService.updateInterventionStatus(interId,isValidate);
+
+            interventionService.updateInterventionStatus(interId,isValidate,technician.getId());
             return ResponseEntity.ok().build();
 
         }catch(EntityNotFoundException e){
@@ -148,7 +156,7 @@ public class InterventionController {
         Intervention intervention=interventionService.findInterventionById(interId)
                 .orElseThrow(()->new EntityNotFoundException("Intervention Not Found"));
 
-        int interventionPoints=intervention.getPoints();
+        BigDecimal interventionPoints=intervention.getBonusAmount();
         return ResponseEntity.ok(interventionPoints);
 
 
@@ -168,6 +176,11 @@ public class InterventionController {
        Technician technician=technicianService.loadTechnician(interventionDetails.getTechnicianFN(),interventionDetails.getTechnicianLN())
                .orElseThrow(()->new EntityNotFoundException("Client Not Found "+interventionDetails.getTechnicianFN()+interventionDetails.getTechnicianLN()));
 
+       LocalDateTime now = LocalDateTime.now();
+
+       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+       String frenchDateTime = now.format(formatter);
+
         bonIntervention.setClient(client);
         bonIntervention.setTechnician(technician);
         bonIntervention.setKm(interventionDetails.getKm());
@@ -178,7 +191,10 @@ public class InterventionController {
         bonIntervention.setStartTime(interventionDetails.getStartTime());
         bonIntervention.setVille(interventionDetails.getVille());
 
+        intervention.setStatus(InterventionStatus.PENDING);
         intervention.setSubmissionDate(interventionDetails.getSubmittedAt());
+        intervention.setUpdated(true);
+        intervention.setUpdateDateTime(frenchDateTime);
 
         bonInterventionService.addNewBonIntervention(bonIntervention);
         interventionService.addNewIntervention(intervention);

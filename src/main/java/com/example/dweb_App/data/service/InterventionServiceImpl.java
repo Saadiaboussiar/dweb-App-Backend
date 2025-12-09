@@ -1,15 +1,17 @@
 package com.example.dweb_App.data.service;
 
-import com.example.dweb_App.data.entities.Intervention;
-import com.example.dweb_App.data.entities.InterventionStatus;
-import com.example.dweb_App.data.entities.PointsCategories;
+import com.example.dweb_App.data.entities.*;
 import com.example.dweb_App.data.repositories.BonInterventionRepository;
 import com.example.dweb_App.data.repositories.InterventionRepository;
+import com.example.dweb_App.data.repositories.TechnicianMonthlySummaryRepository;
+import com.example.dweb_App.data.repositories.TechnicianRepository;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -24,10 +26,16 @@ import static com.example.dweb_App.data.entities.InterventionStatus.VALIDATED;
 public class InterventionServiceImpl implements InterventionService {
     private InterventionRepository interventionRepository;
     private BonInterventionRepository bonInterventionRepository;
+    private TechnicianMonthlySummaryRepository technicianMonthlySummaryRepository;
+    private TechnicianRepository technicianRepository;
+    private TechnicianMonthlySummaryService technicianMonthlySummaryService;
 
-    public InterventionServiceImpl(InterventionRepository interventionRepository, BonInterventionRepository bonInterventionRepository) {
+    public InterventionServiceImpl(InterventionRepository interventionRepository, BonInterventionRepository bonInterventionRepository, TechnicianMonthlySummaryRepository technicianMonthlySummaryRepository, TechnicianRepository technicianRepository, TechnicianMonthlySummaryService technicianMonthlySummaryService) {
         this.interventionRepository = interventionRepository;
         this.bonInterventionRepository = bonInterventionRepository;
+        this.technicianMonthlySummaryRepository = technicianMonthlySummaryRepository;
+        this.technicianRepository = technicianRepository;
+        this.technicianMonthlySummaryService = technicianMonthlySummaryService;
     }
 
     @Override
@@ -66,7 +74,7 @@ public class InterventionServiceImpl implements InterventionService {
     }
 
     @Override
-    public void updateInterventionStatus(Long interId, Boolean isValidate) {
+    public void updateInterventionStatus(Long interId, Boolean isValidate, Long techId) {
 
         Intervention intervention=interventionRepository.findById(interId)
                 .orElseThrow(()->new EntityNotFoundException("Intervention not found "+interId));
@@ -76,6 +84,7 @@ public class InterventionServiceImpl implements InterventionService {
         String frenchDateTime = now.format(formatter);
 
         intervention.setActionDateTime(frenchDateTime);
+
         InterventionStatus status;
 
         if(isValidate==null){
@@ -84,13 +93,12 @@ public class InterventionServiceImpl implements InterventionService {
         else if(isValidate){
 
             status= InterventionStatus.VALIDATED;
-            updateInterventionPoints( interId);
+            updateInterventionPoints( interId, techId);
 
         }else{
             status= InterventionStatus.REJECTED;
         }
         intervention.setStatus(status);
-        intervention.setActionDateTime(frenchDateTime);
 
         interventionRepository.save(intervention);
 
@@ -98,19 +106,71 @@ public class InterventionServiceImpl implements InterventionService {
     }
 
     @Override
-    public void updateInterventionPoints(Long interId) {
-        Intervention intervention=interventionRepository.findById(interId)
-                .orElseThrow(()->new EntityNotFoundException("Intervetion not found "+interId));
+    public void updateInterventionPoints(Long interId, Long techId) {
+        // 1. Fetch entities
+        Intervention intervention = interventionRepository.findById(interId)
+                .orElseThrow(() -> new EntityNotFoundException("Intervention not found " + interId));
 
-        String submissionDate=intervention.getSubmissionDate();
-        PointsCategories pointsCategory=PointsCategories.formValue(submissionDate);
+        Technician technician = technicianRepository.findById(techId)
+                .orElseThrow(() -> new EntityNotFoundException("Technician not found " + techId));
 
-        int points=pointsCategory.bonusAmount;
+        // Ensure intervention belongs to this technician
+        if (!technician.equals(intervention.getTechnician())) {
+            throw new IllegalArgumentException(
+                    "Intervention " + interId + " does not belong to technician " + techId
+            );
+        }
 
-        intervention.setPoints(points);
+        // 2. Determine which date to use
+        String dateString = intervention.isUpdated()
+                ? intervention.getUpdateDateTime()
+                : intervention.getSubmissionDate();
 
+        if (dateString == null) {
+            throw new IllegalStateException("No date available for intervention " + interId);
+        }
+
+        // 3. Calculate points and bonus
+        PointsCategories pointsCategory = PointsCategories.formValue(dateString);
+        BigDecimal bonus = pointsCategory.bonusAmount;
+        int points = pointsCategory.points;
+
+        // 4. Update intervention
+        intervention.setBonusAmount(bonus);
+        intervention.setPointsEarned(points);  // ✅ ADDED THIS!
+
+        // 5. Parse date for month/year
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRENCH);
+        LocalDateTime dateTime;
+        try {
+            dateTime = LocalDateTime.parse(dateString, formatter);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date format: " + dateString);
+        }
+
+        LocalDate monthStart = dateTime.toLocalDate().withDayOfMonth(1);
+
+        // 6. Find or create monthly summary
+        TechnicianMonthlySummary monthlySummary = technicianMonthlySummaryRepository
+                .findByTechnicianAndMonthYear(technician, monthStart)
+                .orElseGet(() -> technicianMonthlySummaryService.createNewMonthlySummary(technician, monthStart));
+
+        // 7. Update monthly summary
+        monthlySummary.setTotalBonus(
+                monthlySummary.getTotalBonus().add(bonus)
+        );
+        monthlySummary.setTotalPoints(
+                monthlySummary.getTotalPoints() + points
+        );
+        monthlySummary.setInterventionsCount(monthlySummary.getInterventionsCount()+1);  // ✅ ADDED
+
+        // 8. Save everything
+        technicianMonthlySummaryRepository.save(monthlySummary);
         interventionRepository.save(intervention);
 
-
+        // Optional: Add to technician's collection for consistency
+        if (!technician.getMonthlySummaries().contains(monthlySummary)) {
+            technician.getMonthlySummaries().add(monthlySummary);
+        }
     }
 }

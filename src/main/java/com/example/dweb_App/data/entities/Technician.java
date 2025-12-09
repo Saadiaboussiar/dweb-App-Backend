@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Data
@@ -39,5 +41,9 @@ public class Technician {
 
     @OneToMany(mappedBy = "technician", cascade = CascadeType.ALL)
     private Collection<Notifications> notifications;
+
+    @OneToMany(mappedBy = "technician", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TechnicianMonthlySummary> monthlySummaries = new ArrayList<>();
+
 
 }
