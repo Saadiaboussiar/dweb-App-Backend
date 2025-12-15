@@ -152,7 +152,7 @@ public class InterventionServiceImpl implements InterventionService {
 
         // 6. Find or create monthly summary
         TechnicianMonthlySummary monthlySummary = technicianMonthlySummaryRepository
-                .findByTechnicianAndMonthYear(technician, monthStart)
+                .findByTechnicianIdAndMonthYear(techId, monthStart)
                 .orElseGet(() -> technicianMonthlySummaryService.createNewMonthlySummary(technician, monthStart));
 
         // 7. Update monthly summary

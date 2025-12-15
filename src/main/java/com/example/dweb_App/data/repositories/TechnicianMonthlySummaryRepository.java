@@ -10,7 +10,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface TechnicianMonthlySummaryRepository extends JpaRepository<TechnicianMonthlySummary,Long> {
-    Optional<TechnicianMonthlySummary> findByTechnicianAndMonthYear(Technician technician, LocalDate monthStart);
 
     @Query("SELECT tms FROM TechnicianMonthlySummary tms " +
             "WHERE tms.technician.id = :technicianId " +
