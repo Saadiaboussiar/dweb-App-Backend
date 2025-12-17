@@ -9,6 +9,7 @@ import com.example.dweb_App.dto.response.MonthlySummaryResponseDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
+@PreAuthorize("hasAuthority('USER')")
 @RequestMapping("/technicianMonthlySummary")
 public class TechnicianMonthlySummaryController {
 

@@ -7,6 +7,7 @@ import com.example.dweb_App.data.service.InterventionService;
 import com.example.dweb_App.data.service.TechnicianService;
 import com.example.dweb_App.dto.response.InterventionDetailsDTO;
 import com.example.dweb_App.dto.response.InterventionEssentialsDTO;
+import com.example.dweb_App.dto.response.InterventionStatsDTO;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.example.dweb_App.data.entities.InterventionStatus.*;
 
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
@@ -191,7 +195,7 @@ public class InterventionController {
         bonIntervention.setStartTime(interventionDetails.getStartTime());
         bonIntervention.setVille(interventionDetails.getVille());
 
-        intervention.setStatus(InterventionStatus.PENDING);
+        intervention.setStatus(PENDING);
         intervention.setSubmissionDate(interventionDetails.getSubmittedAt());
         intervention.setUpdated(true);
         intervention.setUpdateDateTime(frenchDateTime);
@@ -201,6 +205,37 @@ public class InterventionController {
 
         return ResponseEntity.ok("Intervention was updated successfully");
 
+    }
+
+
+    @GetMapping("/statistics/{techId}")
+    public ResponseEntity<InterventionStatsDTO> getTechnicianStatistics(@PathVariable Long techId){
+
+        Technician technician=technicianService.loadTechnicianById(techId)
+                .orElseThrow(()->new EntityNotFoundException("Client Not Found "+techId));
+
+        List<Intervention> interventions=technician.getInterventions().stream().toList();
+        int totalInterventions=interventions.size();
+
+        Map<InterventionStatus, Long> statusCounts = interventions.stream()
+                .collect(Collectors.groupingBy(
+                        Intervention::getStatus,
+                        Collectors.counting()
+                ));
+
+        int validated = statusCounts.getOrDefault(VALIDATED, 0L).intValue();
+        int rejected = statusCounts.getOrDefault(REJECTED, 0L).intValue();
+        int pending = statusCounts.getOrDefault(PENDING, 0L).intValue();
+        double validationRate = ((double) validated / (validated + rejected)) * 100;
+
+        InterventionStatsDTO interventionStatsDTO= InterventionStatsDTO.builder()
+                .total(totalInterventions)
+                .validated(validated)
+                .rejected(rejected)
+                .pending(pending)
+                .validationRate(validationRate).build();
+
+        return ResponseEntity.ok(interventionStatsDTO);
     }
 
 

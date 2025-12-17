@@ -152,4 +152,22 @@ public class AppUserController {
                     .body("Error updating profile: " + e.getMessage());
         }
     }
+
+    @GetMapping("/userId/{userEmail}")
+    public ResponseEntity<Long> getUserId(@PathVariable String userEmail){
+
+        Optional<Admins> admin = adminRepository.findByEmailAndActiveTrue(userEmail);
+
+        if (admin.isPresent()) {
+            return ResponseEntity.ok(admin.get().getId());
+        }
+
+        // Check if the email belongs to a technician
+        Optional<Technician> technician = technicianRepository.findByEmail(userEmail);
+
+        if (technician.isPresent()) {
+            return ResponseEntity.ok(technician.get().getId());
+        }
+        return null;
+    }
 }

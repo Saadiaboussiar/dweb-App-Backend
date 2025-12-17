@@ -90,6 +90,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         idToken.put("role",role);
         idToken.put("userEmail",user.getUsername());
 
+
         if (passwordChangeRequired) {
             idToken.put("redirect", "/change-password");
             idToken.put("message", "Password change required. Please update your password.");

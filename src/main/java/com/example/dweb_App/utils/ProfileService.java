@@ -30,12 +30,14 @@ public class ProfileService {
     public UserProfileDTO getProfileData(String email) {
         // Check if the email belongs to an admin
         Optional<Admins> admin = adminRepository.findByEmailAndActiveTrue(email);
+
         if (admin.isPresent()) {
             return buildAdminProfile(admin.get());
         }
 
         // Check if the email belongs to a technician
         Optional<Technician> technician = technicianRepository.findByEmail(email);
+
         if (technician.isPresent()) {
             return buildTechnicianProfile(technician.get());
         }
@@ -45,6 +47,7 @@ public class ProfileService {
 
     private UserProfileDTO buildAdminProfile(Admins admin) {
         return UserProfileDTO.builder()
+                .userId(admin.getId())
                 .email(admin.getEmail())
                 .fullName(admin.getUsername())
                 .profileUrl(admin.getProfileUrl())
@@ -56,6 +59,7 @@ public class ProfileService {
 
     private UserProfileDTO buildTechnicianProfile(Technician technician) {
         return UserProfileDTO.builder()
+                .userId(technician.getId())
                 .email(technician.getEmail())
                 .fullName(technician.getFirstName()+" "+technician.getLastName())
                 .profileUrl(technician.getPhotoUrl())

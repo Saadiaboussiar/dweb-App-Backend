@@ -24,6 +24,9 @@ services:
             PGADMIN_DEFAULT_PASSWORD: saadia2005
         ports:
             - "8080:80"
+        volumes:
+
+            - pgadmin_data:/var/lib/pgadmin
         depends_on:
             - postgres
         restart: unless-stopped
@@ -32,7 +35,7 @@ services:
 
 volumes:
     postgres_data:
-
+    pgadmin_data:
 
 networks:
     app_network:
