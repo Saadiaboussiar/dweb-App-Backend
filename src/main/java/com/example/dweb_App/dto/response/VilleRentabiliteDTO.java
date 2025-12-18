@@ -15,7 +15,5 @@ public class VilleRentabiliteDTO {
     private String name;                      // name: string
     private int nbClients;                    // nbClients: number
     private int nbInterventions;              // nbInterventions: number
-    private double totalKm;                   // totalKm: number
-    private double revenuTotal;               // revenuTotal: number
-    private double tauxRentabiliteMoyen;      // tauxRentabiliteMoyen: number
+    private double totalKm;
 }

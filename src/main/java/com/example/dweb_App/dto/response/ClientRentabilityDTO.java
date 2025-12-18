@@ -10,16 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ClientRentabiliteDTO {
+public class ClientRentabilityDTO {
     private String cin;                        // cin: string
     private String fullName;                   // fullName: string
     private String ville;                      // ville: string
     private int nbInterventions;               // nbInterventions: number
     private double totalKm;                    // totalKm: number
-    private double coutTransport;              // coutTransport: number
-    private double revenuTotal;                // revenuTotal: number
-    private double tauxRentabilite;            // tauxRentabilite: number (%)
-
-    private double rentabiliteAbsolue;         // rentabiliteAbsolue: number (DH)
-    private double kmMoyenParIntervention;     // kmMoyenParIntervention: number
+    private double coutTransport;        // rentabiliteAbsolue: number (DH)
+    private double kmMoyenParIntervention;
+    private double coutParIntervention;
 }
