@@ -12,6 +12,4 @@ import java.util.Collection;
 public class Car {
     @Id
     private String matricule;
-    @OneToMany(mappedBy = "car")
-    private Collection<Technician> technicians;
 }

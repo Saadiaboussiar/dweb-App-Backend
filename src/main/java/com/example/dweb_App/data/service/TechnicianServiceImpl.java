@@ -3,7 +3,9 @@ package com.example.dweb_App.data.service;
 import com.example.dweb_App.data.entities.BonIntervention;
 import com.example.dweb_App.data.entities.Client;
 import com.example.dweb_App.data.entities.Technician;
+import com.example.dweb_App.data.entities.TechnicianMonthlySummary;
 import com.example.dweb_App.data.repositories.TechnicianRepository;
+import com.example.dweb_App.dto.response.TechnicianBonusDTO;
 import com.example.dweb_App.exception.BusinessException;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -111,5 +114,50 @@ public class TechnicianServiceImpl implements TechnicianService {
 
         return technician.getBonInterventions().stream().toList();
 
+    }
+
+    public List<TechnicianBonusDTO> getTechniciansBonusDetails() {
+
+        List<Technician> technicians = technicianRepository.findAll();
+
+        return technicians.stream().map(tech -> {
+
+            // 🔹 Name
+            String fullName = tech.getFirstName() + " " + tech.getLastName();
+
+            // 🔹 Monthly summaries aggregation
+            int totalPoints = 0;
+            double totalBonus = 0;
+            int totalInterventions = 0;
+
+            for (TechnicianMonthlySummary summary : tech.getMonthlySummaries()) {
+                totalPoints += summary.getTotalPoints();
+                totalBonus += summary.getTotalBonus().doubleValue();
+                totalInterventions += summary.getInterventionsCount();
+            }
+
+            // 🔹 Distance (from BonIntervention)
+            double totalDistance = tech.getBonInterventions()
+                    .stream()
+                    .mapToDouble(b -> b.getKm() )
+                    .sum();
+
+            // 🔹 Hours (you DON'T have it → placeholder)
+            double totalHours = totalInterventions * 1.5; // ⚠️ adjust later
+
+            return TechnicianBonusDTO.builder()
+                    .id(tech.getId())
+                    .name(fullName)
+                    .email(tech.getEmail())
+                    .currentPoints(totalPoints)
+                    .totalRewards(totalBonus)
+                    .cin(tech.getCin())
+                    .phone(tech.getPhoneNumber())
+                    .totalInterventions(totalInterventions)
+                    .totalHours(totalHours)
+                    .totalDistance(totalDistance)
+                    .build();
+
+        }).collect(Collectors.toList());
     }
 }

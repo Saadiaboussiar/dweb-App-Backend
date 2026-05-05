@@ -66,7 +66,7 @@ public class ProfileService {
                 .role("TECHNICIAN")
                 .phoneNumber(technician.getPhoneNumber())
                 .cin(technician.getCin())
-                .carMatricule(technician.getCar().getMatricule())
+                .carMatricule(technician.getCar_matricule())
                 .build();
     }
 

@@ -89,7 +89,7 @@ public class AppUserController {
     }
 
 
-    @GetMapping("/getProfile/{userEmail}")
+    @GetMapping("/getProfile/{userEmail:.+}")
     public ResponseEntity<?> getUserProfile(@PathVariable String userEmail) {
 
         try {

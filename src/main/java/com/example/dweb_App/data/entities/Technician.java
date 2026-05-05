@@ -27,9 +27,7 @@ public class Technician {
     private String photoUrl; //path to the photo
     private String cnss;//il faut avoir une autre table pour ca (ou si il s'agit seulement de nom)
 
-    @ManyToOne
-    @JoinColumn(name = "car_matricule", referencedColumnName = "matricule")
-    private Car car;
+    private String car_matricule;
 
     @OneToMany(mappedBy = "technician")
     @JsonIgnore

@@ -1,5 +1,6 @@
 package com.example.dweb_App.web.controllers;
 
+import com.example.dweb_App.data.entities.Car;
 import com.example.dweb_App.data.entities.Intervention;
 import com.example.dweb_App.data.entities.Technician;
 import com.example.dweb_App.data.service.TechnicianService;
@@ -65,7 +66,7 @@ public class TechnicianController {
                        .phoneNumber(technician.getPhoneNumber())
                        .cin(technician.getCin())
                        .cnss(technician.getCnss())
-                       .carMatricule(technician.getCar().getMatricule())
+                       .carMatricule(technician.getCar_matricule())
                        .profileUrl(technician.getPhotoUrl()).build();
                technicianResponseList.add(technicianResponse);
            }
@@ -79,7 +80,7 @@ public class TechnicianController {
     @PostMapping
     public ResponseEntity<?> addNewTechnician(@RequestBody @Valid TechnicianCreateDTO technician){
 
-        Technician newTechnician= Technician.builder().cin(technician.getCin()).email(technician.getEmail()).cnss(technician.getCnss()).firstName(technician.getFirstName()).lastName(technician.getLastName()).phoneNumber(technician.getPhoneNumber()).build();
+        Technician newTechnician= Technician.builder().car_matricule(technician.getCarMatricule()).cin(technician.getCin()).email(technician.getEmail()).cnss(technician.getCnss()).firstName(technician.getFirstName()).lastName(technician.getLastName()).phoneNumber(technician.getPhoneNumber()).build();
         Technician addedTechnician=technicianService.addNewTechnician(newTechnician);
 
         try {

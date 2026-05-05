@@ -34,6 +34,7 @@ public class Notifications {
     @JoinColumn(name = "intervention_id", nullable = false)
     private Intervention intervention;
 
+    @Column(name = "is_read")
     private Boolean read = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -6,10 +6,8 @@ import com.example.dweb_App.data.entities.Intervention;
 import com.example.dweb_App.data.repositories.AdminRepository;
 import com.example.dweb_App.data.repositories.BonInterventionRepository;
 import com.example.dweb_App.data.repositories.ClientRepository;
-import com.example.dweb_App.dto.response.ClientRentabilityDTO;
-import com.example.dweb_App.dto.response.InterventionDetailDto;
-import com.example.dweb_App.dto.response.PeriodeStatsDTO;
-import com.example.dweb_App.dto.response.VilleRentabiliteDTO;
+import com.example.dweb_App.data.service.TechnicianService;
+import com.example.dweb_App.dto.response.*;
 import com.example.dweb_App.exception.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +28,13 @@ public class AdminController {
     private AdminRepository adminRepository;
     private ClientRepository clientRepository;
     private BonInterventionRepository bonInterventionRepository;
+    private TechnicianService technicianService;
 
-    public AdminController(AdminRepository adminRepository, ClientRepository clientRepository, BonInterventionRepository bonInterventionRepository) {
+    public AdminController(AdminRepository adminRepository, ClientRepository clientRepository, BonInterventionRepository bonInterventionRepository, TechnicianService technicianService) {
         this.adminRepository = adminRepository;
         this.clientRepository = clientRepository;
         this.bonInterventionRepository = bonInterventionRepository;
+        this.technicianService = technicianService;
     }
 
 
@@ -167,6 +167,15 @@ public class AdminController {
             interventionDetailDtos.add(interventionDetailDto);
         }
         return  ResponseEntity.ok(interventionDetailDtos);
+    }
+
+
+    @GetMapping("/technicians-bonus-details")
+    public ResponseEntity<?> getTechniciansBonusDetails() {
+
+        List<TechnicianBonusDTO> technicians = technicianService.getTechniciansBonusDetails();
+
+        return ResponseEntity.ok(technicians);
     }
 
 
